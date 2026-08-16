@@ -38,3 +38,23 @@ export interface ToastState {
   withUndo?: boolean;
   timestamp: number;
 }
+
+export interface UserRecord {
+  userId: string;
+  username: string;
+  email: string;
+  passwordHash: string;
+  apiKey: string;
+  shortcuts: Shortcut[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface PublicUser {
+  userId: string;
+  username: string;
+  email: string;
+  apiKey: string;
+  totalShortcuts?: number;
+  createdAt?: number;
+}

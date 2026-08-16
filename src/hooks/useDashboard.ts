@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Preferences, Shortcut, SortMode, ToastState } from '@/lib/types';
+import { Preferences, Shortcut, SortMode, ToastState, PublicUser } from '@/lib/types';
 import { DEFAULT_SHORTCUTS, PREFS_KEY, STORAGE_KEY, API_KEY_STORAGE } from '@/lib/constants';
 import { hostname } from '@/lib/utils';
 
+const USER_SESSION_STORAGE = 'nt_user_session_v1';
+
 export function useDashboard() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [user, setUser] = useState<PublicUser | null>(null);
   const [apiKey, setApiKey] = useState<string>('');
   const [sites, setSites] = useState<Shortcut[]>([]);
   const [prefs, setPrefs] = useState<Preferences>({
@@ -16,7 +19,11 @@ export function useDashboard() {
   });
   const [lastDeleted, setLastDeleted] = useState<{ site: Shortcut; index: number } | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
-  const isInitialSyncDone = useRef(false);
+
+  const userRef = useRef<PublicUser | null>(null);
+  const apiKeyRef = useRef<string>('');
+  userRef.current = user;
+  apiKeyRef.current = apiKey;
 
   const showToast = useCallback((message: string, withUndo = false) => {
     setToast({
@@ -30,22 +37,24 @@ export function useDashboard() {
     setToast(null);
   }, []);
 
-  // Sync with API in background
-  const syncToCloud = useCallback((currentSites: Shortcut[], keyToUse?: string) => {
-    const key = keyToUse || apiKey;
-    if (!key) return;
+  // Sync with API in background without causing state loops
+  const syncToCloud = useCallback((currentSites: Shortcut[], keyToUse?: string, userIdToUse?: string) => {
+    const key = keyToUse || apiKeyRef.current;
+    const uid = userIdToUse || userRef.current?.userId;
+    if (!key && !uid) return;
 
     fetch('/api/shortcuts', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': key,
+        ...(key ? { 'x-api-key': key } : {}),
+        ...(uid ? { 'x-user-id': uid } : {}),
       },
       body: JSON.stringify({ shortcuts: currentSites }),
     }).catch((err) => {
-      console.warn('Cloud sync background update failed (offline or serverless):', err);
+      console.warn('Cloud sync note:', err);
     });
-  }, [apiKey]);
+  }, []);
 
   // Persist sites locally and to cloud
   const saveSites = useCallback((updated: Shortcut[], shouldSyncCloud = true) => {
@@ -55,10 +64,10 @@ export function useDashboard() {
     } catch (e) {
       console.error('Failed to save shortcuts to localStorage', e);
     }
-    if (shouldSyncCloud && apiKey) {
+    if (shouldSyncCloud && (apiKeyRef.current || userRef.current?.userId)) {
       syncToCloud(updated);
     }
-  }, [apiKey, syncToCloud]);
+  }, [syncToCloud]);
 
   // Persist preferences
   const savePrefs = useCallback((updated: Partial<Preferences>) => {
@@ -73,8 +82,14 @@ export function useDashboard() {
     });
   }, []);
 
-  // Initial Load from localStorage and backend
+  // One-time initial mount effect (empty dependency array)
   useEffect(() => {
+    let localUser: PublicUser | null = null;
+    try {
+      const rawUser = localStorage.getItem(USER_SESSION_STORAGE);
+      if (rawUser) localUser = JSON.parse(rawUser);
+    } catch {}
+
     let localKey = '';
     try {
       localKey = localStorage.getItem(API_KEY_STORAGE) || '';
@@ -101,132 +116,182 @@ export function useDashboard() {
 
     setSites(initialLocalSites);
 
-    // Ensure API Key exists or load from URL param
-    const initializeApiKeyAndSync = async () => {
-      // Check if URL has ?key=
-      let urlKey = '';
-      if (typeof window !== 'undefined') {
-        const params = new URLSearchParams(window.location.search);
-        urlKey = params.get('key') || '';
-      }
+    // Check if URL has ?key=
+    let urlKey = '';
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      urlKey = params.get('key') || '';
+    }
 
-      let activeKey = urlKey || localKey;
-      if (urlKey) {
-        try {
-          localStorage.setItem(API_KEY_STORAGE, urlKey);
-        } catch {}
-      }
+    if (localUser) {
+      setUser(localUser);
+      setApiKey(localUser.apiKey);
+    } else if (localKey || urlKey) {
+      setApiKey(urlKey || localKey);
+    }
 
-      if (!activeKey) {
+    // Verify session once with backend
+    const checkSession = async () => {
+      const activeKey = urlKey || localUser?.apiKey || localKey;
+      const activeUid = localUser?.userId;
+
+      if (activeUid || activeKey) {
         try {
-          const res = await fetch('/api/key', { method: 'POST' });
+          const headers: Record<string, string> = {};
+          if (activeUid) headers['x-user-id'] = activeUid;
+          if (activeKey) headers['x-api-key'] = activeKey;
+
+          const res = await fetch('/api/auth/me', { headers });
           if (res.ok) {
             const data = await res.json();
-            if (data.apiKey) {
-              activeKey = data.apiKey;
+            if (data.user) {
+              setUser(data.user);
+              setApiKey(data.user.apiKey);
               try {
-                localStorage.setItem(API_KEY_STORAGE, activeKey);
+                localStorage.setItem(USER_SESSION_STORAGE, JSON.stringify(data.user));
+                localStorage.setItem(API_KEY_STORAGE, data.user.apiKey);
               } catch {}
-            }
-          }
-        } catch {
-          // Fallback client-generated key
-          activeKey = `nt_key_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
-          try {
-            localStorage.setItem(API_KEY_STORAGE, activeKey);
-          } catch {}
-        }
-      }
 
-      setApiKey(activeKey);
-
-      // Fetch cloud shortcuts if any added via extension
-      if (activeKey && !isInitialSyncDone.current) {
-        isInitialSyncDone.current = true;
-        try {
-          const res = await fetch('/api/shortcuts', {
-            headers: { 'x-api-key': activeKey },
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data.shortcuts) && data.shortcuts.length > 0) {
-              // If user loaded a specific key from URL or remote has items, use remote shortcuts
-              if (urlKey) {
-                setSites(data.shortcuts);
-                try {
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify(data.shortcuts));
-                } catch {}
-              } else {
-                // Merge remote shortcuts with local (avoid duplicates by URL)
-                const existingUrls = new Set(initialLocalSites.map((s) => s.url.toLowerCase()));
-                const newFromCloud = data.shortcuts.filter(
-                  (s: Shortcut) => !existingUrls.has(s.url.toLowerCase())
-                );
-                if (newFromCloud.length > 0) {
-                  const merged = [...initialLocalSites, ...newFromCloud];
-                  setSites(merged);
+              // Fetch user shortcuts
+              const scRes = await fetch('/api/shortcuts', {
+                headers: { 'x-user-id': data.user.userId, 'x-api-key': data.user.apiKey },
+              });
+              if (scRes.ok) {
+                const scData = await scRes.json();
+                if (Array.isArray(scData.shortcuts) && scData.shortcuts.length > 0) {
+                  setSites(scData.shortcuts);
                   try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(scData.shortcuts));
                   } catch {}
                 }
               }
-            } else {
-              // Push local shortcuts to remote server
-              syncToCloud(initialLocalSites, activeKey);
             }
           }
         } catch (err) {
-          console.warn('Initial cloud sync attempt error:', err);
+          console.warn('Session verification note:', err);
         }
       }
-
       setIsLoaded(true);
     };
 
-    initializeApiKeyAndSync();
-  }, [syncToCloud]);
+    checkSession();
+  }, []); // Runs strictly ONCE on mount!
 
-  const connectExistingKey = useCallback(async (newKey: string) => {
-    const cleanKey = newKey.trim();
-    if (!cleanKey) return;
-
+  const login = useCallback(async (identifier: string, password?: string) => {
     try {
-      setApiKey(cleanKey);
-      try {
-        localStorage.setItem(API_KEY_STORAGE, cleanKey);
-      } catch {}
-
-      const res = await fetch('/api/shortcuts', {
-        headers: { 'x-api-key': cleanKey },
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.shortcuts)) {
-          setSites(data.shortcuts);
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.shortcuts));
-          } catch {}
-          showToast(`Connected to account (${data.shortcuts.length} shortcuts loaded)`);
-          return;
-        }
+
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Authentication failed' };
       }
-      showToast('Connected with API Key');
+
+      if (data.user) {
+        setUser(data.user);
+        setApiKey(data.user.apiKey);
+        try {
+          localStorage.setItem(USER_SESSION_STORAGE, JSON.stringify(data.user));
+          localStorage.setItem(API_KEY_STORAGE, data.user.apiKey);
+        } catch {}
+
+        // Fetch user's shortcuts
+        const scRes = await fetch('/api/shortcuts', {
+          headers: { 'x-user-id': data.user.userId, 'x-api-key': data.user.apiKey },
+        });
+        if (scRes.ok) {
+          const scData = await scRes.json();
+          if (Array.isArray(scData.shortcuts)) {
+            setSites(scData.shortcuts);
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(scData.shortcuts));
+            } catch {}
+          }
+        }
+
+        showToast(`Welcome back, @${data.user.username}!`);
+        return { success: true, user: data.user };
+      }
+
+      return { success: false, error: 'User data missing' };
     } catch {
-      showToast('Error connecting with key');
+      return { success: false, error: 'Could not connect to auth server' };
     }
+  }, [showToast]);
+
+  const register = useCallback(async (username: string, email: string, password: string) => {
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Registration failed' };
+      }
+
+      if (data.user) {
+        setUser(data.user);
+        setApiKey(data.user.apiKey);
+        try {
+          localStorage.setItem(USER_SESSION_STORAGE, JSON.stringify(data.user));
+          localStorage.setItem(API_KEY_STORAGE, data.user.apiKey);
+        } catch {}
+
+        // Push initial bookmarks for this new user
+        syncToCloud(sites, data.user.apiKey, data.user.userId);
+        showToast(`Account created! Welcome, @${data.user.username}`);
+        return { success: true, user: data.user };
+      }
+
+      return { success: false, error: 'User data missing' };
+    } catch {
+      return { success: false, error: 'Could not connect to auth server' };
+    }
+  }, [sites, syncToCloud, showToast]);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    setApiKey('');
+    try {
+      localStorage.removeItem(USER_SESSION_STORAGE);
+      localStorage.removeItem(API_KEY_STORAGE);
+    } catch {}
+    showToast('Signed out successfully');
   }, [showToast]);
 
   const regenerateApiKey = useCallback(async () => {
     try {
-      const res = await fetch('/api/key', { method: 'POST' });
+      const headers: Record<string, string> = {};
+      if (user?.userId) headers['x-user-id'] = user.userId;
+      if (apiKey) headers['x-api-key'] = apiKey;
+
+      const res = await fetch('/api/key', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ userId: user?.userId, apiKey }),
+      });
+
       if (res.ok) {
         const data = await res.json();
         if (data.apiKey) {
           setApiKey(data.apiKey);
+          if (user) {
+            const updatedUser = { ...user, apiKey: data.apiKey };
+            setUser(updatedUser);
+            try {
+              localStorage.setItem(USER_SESSION_STORAGE, JSON.stringify(updatedUser));
+            } catch {}
+          }
           try {
             localStorage.setItem(API_KEY_STORAGE, data.apiKey);
           } catch {}
-          syncToCloud(sites, data.apiKey);
+          syncToCloud(sites, data.apiKey, user?.userId);
           showToast('Generated new API Key');
           return data.apiKey;
         }
@@ -234,7 +299,7 @@ export function useDashboard() {
     } catch {
       showToast('Failed to regenerate key');
     }
-  }, [sites, syncToCloud, showToast]);
+  }, [user, apiKey, sites, syncToCloud, showToast]);
 
   const addShortcut = useCallback((siteData: { url: string; name?: string; category?: string; pinned?: boolean }) => {
     const cleanUrl = siteData.url.trim();
@@ -367,6 +432,7 @@ export function useDashboard() {
 
   return {
     isLoaded,
+    user,
     apiKey,
     sites,
     prefs,
@@ -374,6 +440,9 @@ export function useDashboard() {
     filteredSites,
     categories,
     toast,
+    login,
+    register,
+    logout,
     addShortcut,
     updateShortcut,
     deleteShortcut,
@@ -386,9 +455,7 @@ export function useDashboard() {
     importShortcuts,
     clearAllShortcuts,
     regenerateApiKey,
-    connectExistingKey,
     showToast,
     dismissToast,
   };
 }
-

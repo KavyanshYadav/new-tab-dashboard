@@ -829,6 +829,33 @@ select:focus-visible {
   flex-direction: column;
 }
 
+.guest-mode-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+  margin-top: 6px;
+}
+
+.guest-mode-badge {
+  display: inline-block;
+  background: rgba(245, 163, 163, 0.1);
+  border: 1px solid rgba(245, 163, 163, 0.3);
+  color: #f5a3a3;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  margin-bottom: 12px;
+}
+
+.guest-mode-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+
 .api-key-row {
   display: flex;
   gap: 8px;
@@ -1104,8 +1131,75 @@ select:focus-visible {
 }
 
 .auth-titles {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
+
+.auth-mode-toggle {
+  display: flex;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 16px;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  font-size: 12px;
+  padding: 6px 0;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.auth-tab-btn:hover {
+  color: var(--text-muted);
+}
+
+.auth-tab-btn.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.auth-error-banner {
+  background: rgba(245, 163, 163, 0.1) !important;
+  border: 1px solid rgba(245, 163, 163, 0.3) !important;
+  color: #f5a3a3 !important;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.oauth-soon {
+  font-size: 10px;
+  color: var(--text-faint);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  padding: 1px 6px;
+  border-radius: 12px;
+  margin-left: 4px;
+}
+
+.oauth-btn-disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  border-style: dashed !important;
+}
+
+.oauth-btn-disabled:hover {
+  transform: none !important;
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+}
+
 
 .auth-main-title {
   font-size: 18px;

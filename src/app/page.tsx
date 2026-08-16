@@ -16,6 +16,7 @@ import { Toast } from '@/components/Toast';
 
 export default function DashboardPage() {
   const {
+    user,
     apiKey,
     sites,
     prefs,
@@ -23,6 +24,9 @@ export default function DashboardPage() {
     filteredSites,
     categories,
     toast,
+    login,
+    register,
+    logout,
     addShortcut,
     updateShortcut,
     deleteShortcut,
@@ -35,7 +39,6 @@ export default function DashboardPage() {
     importShortcuts,
     clearAllShortcuts,
     regenerateApiKey,
-    connectExistingKey,
     showToast,
     dismissToast,
   } = useDashboard();
@@ -86,12 +89,14 @@ export default function DashboardPage() {
 
   return (
     <main className="shell" style={{ position: 'relative' }}>
-      {/* Top Right User Avatar & Profile Dropdown */}
+      {/* Top Right Fixed User Avatar & Profile Dropdown */}
       <div className="top-bar-actions">
         <UserAvatarMenu
+          user={user}
           apiKey={apiKey}
           onOpenAuth={() => setIsAuthOpen(true)}
           onOpenApiSettings={() => setIsApiSettingsOpen(true)}
+          onLogout={logout}
           onShowToast={(msg) => showToast(msg)}
         />
       </div>
@@ -159,17 +164,21 @@ export default function DashboardPage() {
       {/* Extension & API Settings Modal */}
       <ApiSettingsModal
         isOpen={isApiSettingsOpen}
+        user={user}
         apiKey={apiKey}
         onClose={() => setIsApiSettingsOpen(false)}
+        onOpenAuth={() => setIsAuthOpen(true)}
         onRegenerateKey={regenerateApiKey}
         onShowToast={(msg) => showToast(msg)}
       />
 
-      {/* Login & OAuth2 Authentication Modal */}
+
+      {/* Email & Password Authentication Modal */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
-        onLoginWithKey={connectExistingKey}
+        onLogin={login}
+        onRegister={register}
         onShowToast={(msg) => showToast(msg)}
       />
 
