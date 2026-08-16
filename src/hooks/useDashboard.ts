@@ -101,9 +101,22 @@ export function useDashboard() {
 
     setSites(initialLocalSites);
 
-    // Ensure API Key exists
+    // Ensure API Key exists or load from URL param
     const initializeApiKeyAndSync = async () => {
-      let activeKey = localKey;
+      // Check if URL has ?key=
+      let urlKey = '';
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        urlKey = params.get('key') || '';
+      }
+
+      let activeKey = urlKey || localKey;
+      if (urlKey) {
+        try {
+          localStorage.setItem(API_KEY_STORAGE, urlKey);
+        } catch {}
+      }
+
       if (!activeKey) {
         try {
           const res = await fetch('/api/key', { method: 'POST' });
@@ -137,17 +150,25 @@ export function useDashboard() {
           if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data.shortcuts) && data.shortcuts.length > 0) {
-              // Merge remote shortcuts with local (avoid duplicates by URL)
-              const existingUrls = new Set(initialLocalSites.map((s) => s.url.toLowerCase()));
-              const newFromCloud = data.shortcuts.filter(
-                (s: Shortcut) => !existingUrls.has(s.url.toLowerCase())
-              );
-              if (newFromCloud.length > 0) {
-                const merged = [...initialLocalSites, ...newFromCloud];
-                setSites(merged);
+              // If user loaded a specific key from URL or remote has items, use remote shortcuts
+              if (urlKey) {
+                setSites(data.shortcuts);
                 try {
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(data.shortcuts));
                 } catch {}
+              } else {
+                // Merge remote shortcuts with local (avoid duplicates by URL)
+                const existingUrls = new Set(initialLocalSites.map((s) => s.url.toLowerCase()));
+                const newFromCloud = data.shortcuts.filter(
+                  (s: Shortcut) => !existingUrls.has(s.url.toLowerCase())
+                );
+                if (newFromCloud.length > 0) {
+                  const merged = [...initialLocalSites, ...newFromCloud];
+                  setSites(merged);
+                  try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+                  } catch {}
+                }
               }
             } else {
               // Push local shortcuts to remote server
@@ -164,6 +185,36 @@ export function useDashboard() {
 
     initializeApiKeyAndSync();
   }, [syncToCloud]);
+
+  const connectExistingKey = useCallback(async (newKey: string) => {
+    const cleanKey = newKey.trim();
+    if (!cleanKey) return;
+
+    try {
+      setApiKey(cleanKey);
+      try {
+        localStorage.setItem(API_KEY_STORAGE, cleanKey);
+      } catch {}
+
+      const res = await fetch('/api/shortcuts', {
+        headers: { 'x-api-key': cleanKey },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.shortcuts)) {
+          setSites(data.shortcuts);
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.shortcuts));
+          } catch {}
+          showToast(`Connected to account (${data.shortcuts.length} shortcuts loaded)`);
+          return;
+        }
+      }
+      showToast('Connected with API Key');
+    } catch {
+      showToast('Error connecting with key');
+    }
+  }, [showToast]);
 
   const regenerateApiKey = useCallback(async () => {
     try {
@@ -335,7 +386,9 @@ export function useDashboard() {
     importShortcuts,
     clearAllShortcuts,
     regenerateApiKey,
+    connectExistingKey,
     showToast,
     dismissToast,
   };
 }
+

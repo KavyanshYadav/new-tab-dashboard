@@ -10,6 +10,8 @@ import { UtilityBar } from '@/components/UtilityBar';
 import { AddEditModal } from '@/components/AddEditModal';
 import { PopularSitesModal } from '@/components/PopularSitesModal';
 import { ApiSettingsModal } from '@/components/ApiSettingsModal';
+import { AuthModal } from '@/components/AuthModal';
+import { UserAvatarMenu } from '@/components/UserAvatarMenu';
 import { Toast } from '@/components/Toast';
 
 export default function DashboardPage() {
@@ -33,6 +35,7 @@ export default function DashboardPage() {
     importShortcuts,
     clearAllShortcuts,
     regenerateApiKey,
+    connectExistingKey,
     showToast,
     dismissToast,
   } = useDashboard();
@@ -41,6 +44,7 @@ export default function DashboardPage() {
   const [editingSite, setEditingSite] = useState<Shortcut | null>(null);
   const [isPopularOpen, setIsPopularOpen] = useState(false);
   const [isApiSettingsOpen, setIsApiSettingsOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const handleOpenAdd = () => {
     setEditingSite(null);
@@ -81,7 +85,17 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="shell">
+    <main className="shell" style={{ position: 'relative' }}>
+      {/* Top Right User Avatar & Profile Dropdown */}
+      <div className="top-bar-actions">
+        <UserAvatarMenu
+          apiKey={apiKey}
+          onOpenAuth={() => setIsAuthOpen(true)}
+          onOpenApiSettings={() => setIsApiSettingsOpen(true)}
+          onShowToast={(msg) => showToast(msg)}
+        />
+      </div>
+
       {/* Clock, Date, Greeting, and Multi-Engine Search */}
       <ClockHero
         engineIndex={prefs.engine}
@@ -148,6 +162,14 @@ export default function DashboardPage() {
         apiKey={apiKey}
         onClose={() => setIsApiSettingsOpen(false)}
         onRegenerateKey={regenerateApiKey}
+        onShowToast={(msg) => showToast(msg)}
+      />
+
+      {/* Login & OAuth2 Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onLoginWithKey={connectExistingKey}
         onShowToast={(msg) => showToast(msg)}
       />
 
