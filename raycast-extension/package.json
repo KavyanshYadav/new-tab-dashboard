@@ -1,0 +1,67 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "new-tab-dashboard",
+  "title": "New Tab Dashboard",
+  "description": "Search, launch, and save bookmarks directly from Raycast to your New Tab Dashboard.",
+  "icon": "command-icon.png",
+  "author": "kavyansh",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "search-shortcuts",
+      "title": "Search Dashboard Bookmarks",
+      "subtitle": "New Tab",
+      "description": "Quickly search, filter, and launch your pinned and categorized shortcuts.",
+      "mode": "view"
+    },
+    {
+      "name": "save-bookmark",
+      "title": "Save Link to Dashboard",
+      "subtitle": "New Tab",
+      "description": "Save a new website shortcut with title, category, and pin status.",
+      "mode": "view"
+    },
+    {
+      "name": "open-dashboard",
+      "title": "Open Dashboard",
+      "subtitle": "New Tab",
+      "description": "Open your personal New Tab Dashboard in the browser.",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "appUrl",
+      "type": "textfield",
+      "required": false,
+      "title": "Dashboard URL",
+      "description": "URL where your dashboard is hosted (e.g. https://aufvim.tech or http://localhost:3001)",
+      "default": "https://aufvim.tech"
+    },
+    {
+      "name": "apiKey",
+      "type": "password",
+      "required": true,
+      "title": "API Key",
+      "description": "Your private user API Key found in your dashboard under 'extension & api' (nt_key_...)"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.90.0",
+    "@raycast/utils": "^1.18.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/node": "20.8.10",
+    "@types/react": "18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint"
+  }
+}
