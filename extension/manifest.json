@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "New Tab Dashboard - Link Saver",
-  "version": "1.0.0",
-  "description": "Hover any link on any webpage or click the toolbar button to instantly save shortcuts to your New Tab Dashboard.",
+  "version": "1.1.0",
+  "description": "Hover any link to save it, or press 'U' on any page to open your Quick Pinned Shortcuts Launcher.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
@@ -29,12 +29,21 @@
   "host_permissions": [
     "<all_urls>"
   ],
+  "commands": {
+    "open-launcher": {
+      "suggested_key": {
+        "default": "Alt+U",
+        "mac": "Alt+U"
+      },
+      "description": "Open Quick Pinned Shortcuts Launcher"
+    }
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content/content.js"],
       "css": ["content/content.css"],
-      "run_at": "document_idle"
+      "run_at": "document_start"
     }
   ]
 }

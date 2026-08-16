@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saveTabBtn = document.getElementById('saveTabBtn');
   const appUrlInput = document.getElementById('appUrl');
   const apiKeyInput = document.getElementById('apiKey');
+  const launcherHotkeyInput = document.getElementById('launcherHotkey');
   const toggleKeyBtn = document.getElementById('toggleKey');
   const testBtn = document.getElementById('testBtn');
   const saveSettingsBtn = document.getElementById('saveSettingsBtn');
@@ -48,10 +49,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (config && config.success) {
       appUrlInput.value = config.appUrl || 'http://localhost:3001';
       apiKeyInput.value = config.apiKey || '';
+      launcherHotkeyInput.value = (config.launcherHotkey || 'u').toUpperCase();
       openDashboardLink.href = config.appUrl || 'http://localhost:3001';
 
       if (!config.apiKey) {
-        // Prompt to configure settings
         showStatus('⚠️ Please enter your API Key in Settings to connect.', 'error');
       }
     }
@@ -155,6 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   testBtn.addEventListener('click', async () => {
     const appUrl = appUrlInput.value.trim();
     const apiKey = apiKeyInput.value.trim();
+    const launcherHotkey = (launcherHotkeyInput.value.trim() || 'u').toLowerCase();
 
     if (!apiKey) {
       showStatus('Please enter an API Key first', 'error');
@@ -165,11 +167,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     testBtn.textContent = 'Testing...';
 
     try {
-      // Temporarily save config to test
       await chrome.runtime.sendMessage({
         type: 'SAVE_CONFIG',
         appUrl,
         apiKey,
+        launcherHotkey,
       });
 
       const response = await chrome.runtime.sendMessage({ type: 'VERIFY_KEY' });
@@ -191,16 +193,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   saveSettingsBtn.addEventListener('click', async () => {
     const appUrl = appUrlInput.value.trim() || 'http://localhost:3001';
     const apiKey = apiKeyInput.value.trim();
+    const launcherHotkey = (launcherHotkeyInput.value.trim() || 'u').toLowerCase();
 
     await chrome.runtime.sendMessage({
       type: 'SAVE_CONFIG',
       appUrl,
       apiKey,
+      launcherHotkey,
     });
 
     openDashboardLink.href = appUrl;
     showToast('Settings saved ✓');
-    showStatus('Settings updated successfully', 'success');
+    showStatus(`Settings updated! Hotkey: [${launcherHotkey.toUpperCase()}]`, 'success');
   });
 
   function escapeHtml(str) {

@@ -231,3 +231,217 @@
   border-color: #5a2e2e !important;
   color: #f5a3a3 !important;
 }
+
+/* ================================================= */
+/* Spotlight Command Palette / Quick Pinned Launcher */
+/* ================================================= */
+
+.__nt_spotlight_overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(5, 5, 7, 0.75) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 2147483646 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding-top: 15vh !important;
+  animation: __nt_spotlight_fade 0.15s ease-out;
+}
+
+@keyframes __nt_spotlight_fade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.__nt_spotlight_box {
+  background: #131315 !important;
+  border: 1px solid #28282c !important;
+  border-radius: 14px !important;
+  width: 100% !important;
+  max-width: 560px !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.8) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #ececee !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.__nt_spotlight_box * {
+  box-sizing: border-box !important;
+}
+
+.__nt_spotlight_search_wrap {
+  display: flex !important;
+  align-items: center !important;
+  padding: 14px 18px !important;
+  border-bottom: 1px solid #232326 !important;
+  position: relative !important;
+}
+
+.__nt_spotlight_search_icon {
+  font-size: 16px !important;
+  margin-right: 12px !important;
+  color: #8b8b93 !important;
+}
+
+.__nt_spotlight_input {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: #ffffff !important;
+  font-size: 14.5px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  padding: 0 !important;
+}
+
+.__nt_spotlight_input::placeholder {
+  color: #63636b !important;
+}
+
+.__nt_spotlight_badge {
+  font-size: 9.5px !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  background: rgba(158, 206, 106, 0.12) !important;
+  color: #9ece6a !important;
+  border: 1px solid rgba(158, 206, 106, 0.3) !important;
+  padding: 2px 7px !important;
+  border-radius: 6px !important;
+  font-family: 'JetBrains Mono', monospace, sans-serif !important;
+}
+
+.__nt_spotlight_results {
+  max-height: 340px !important;
+  overflow-y: auto !important;
+  padding: 8px !important;
+}
+
+.__nt_spotlight_item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 9px 12px !important;
+  border-radius: 9px !important;
+  cursor: pointer !important;
+  transition: background 0.12s ease, border-color 0.12s ease !important;
+  border: 1px solid transparent !important;
+}
+
+.__nt_spotlight_item:hover,
+.__nt_spotlight_item.__nt_selected {
+  background: #1c1c20 !important;
+  border-color: #333338 !important;
+}
+
+.__nt_spotlight_item_left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+  flex: 1 !important;
+}
+
+.__nt_spotlight_fav {
+  width: 28px !important;
+  height: 28px !important;
+  background: #18181b !important;
+  border: 1px solid #2a2a2f !important;
+  border-radius: 7px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.__nt_spotlight_fav img {
+  width: 16px !important;
+  height: 16px !important;
+  object-fit: contain !important;
+}
+
+.__nt_spotlight_info {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.__nt_spotlight_name {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #f4f4f5 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.__nt_spotlight_url {
+  font-size: 11px !important;
+  color: #71717a !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-family: 'JetBrains Mono', monospace, sans-serif !important;
+}
+
+.__nt_spotlight_item_right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+  margin-left: 12px !important;
+}
+
+.__nt_spotlight_cat {
+  font-size: 10px !important;
+  background: #1e1e24 !important;
+  border: 1px solid #2e2e34 !important;
+  color: #a1a1aa !important;
+  padding: 2px 7px !important;
+  border-radius: 12px !important;
+  font-family: 'JetBrains Mono', monospace, sans-serif !important;
+}
+
+.__nt_spotlight_star {
+  font-size: 11px !important;
+}
+
+.__nt_spotlight_empty,
+.__nt_spotlight_loading {
+  padding: 32px 16px !important;
+  text-align: center !important;
+  color: #71717a !important;
+  font-size: 12.5px !important;
+  font-family: 'JetBrains Mono', monospace, sans-serif !important;
+}
+
+.__nt_spotlight_footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 14px !important;
+  padding: 9px 16px !important;
+  background: #0f0f11 !important;
+  border-top: 1px solid #202024 !important;
+  font-size: 10.5px !important;
+  color: #71717a !important;
+  font-family: 'JetBrains Mono', monospace, sans-serif !important;
+}
+
+.__nt_spotlight_footer kbd {
+  background: #18181b !important;
+  border: 1px solid #2a2a2f !important;
+  border-radius: 4px !important;
+  padding: 1px 5px !important;
+  font-size: 10px !important;
+  color: #a1a1aa !important;
+  margin-right: 3px !important;
+}

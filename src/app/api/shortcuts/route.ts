@@ -47,7 +47,12 @@ export async function GET(req: NextRequest) {
     return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
   }
 
-  const shortcuts = getUserShortcuts(user.userId) || [];
+  let shortcuts = getUserShortcuts(user.userId) || [];
+  const onlyPinned = req.nextUrl.searchParams.get('pinned') === 'true';
+  if (onlyPinned) {
+    shortcuts = shortcuts.filter((s) => s.pinned);
+  }
+
   return jsonResponse({
     userId: user.userId,
     username: user.username,
@@ -56,6 +61,7 @@ export async function GET(req: NextRequest) {
     total: shortcuts.length,
   });
 }
+
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
