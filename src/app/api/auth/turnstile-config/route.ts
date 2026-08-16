@@ -6,11 +6,10 @@ export async function OPTIONS() {
 }
 
 export async function GET() {
-  // Read server environment variable (no NEXT_PUBLIC_ required in Vercel)
   const siteKey =
     process.env.TURNSTILE_SITE_KEY ||
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
-    '1x00000000000000000000AA';
+    '0x4AAAAAAER8PxGtcCqrsblF';
 
   return jsonResponse({
     siteKey,

@@ -1,10 +1,16 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
-const DEFAULT_TEST_SITE_KEY = '1x00000000000000000000AA';
+// User's Cloudflare Turnstile Site Key
+export const DEFAULT_SITE_KEY =
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
+  process.env.TURNSTILE_SITE_KEY ||
+  '0x4AAAAAAER8PxGtcCqrsblF';
 
 interface TurnstileWidgetProps {
+  siteKey?: string;
+  action?: string;
   onVerify: (token: string) => void;
   onExpire?: () => void;
   onError?: () => void;
@@ -18,6 +24,7 @@ declare global {
         container: string | HTMLElement,
         params: {
           sitekey: string;
+          action?: string;
           theme?: string;
           callback?: (token: string) => void;
           'expired-callback'?: () => void;
@@ -31,6 +38,8 @@ declare global {
 }
 
 export function TurnstileWidget({
+  siteKey = DEFAULT_SITE_KEY,
+  action,
   onVerify,
   onExpire,
   onError,
@@ -38,59 +47,69 @@ export function TurnstileWidget({
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
-  const [siteKey, setSiteKey] = useState<string>(
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || DEFAULT_TEST_SITE_KEY
-  );
+  const isRenderedRef = useRef(false);
 
-  // Fetch site key from server config endpoint so users don't need NEXT_PUBLIC_ in Vercel
-  useEffect(() => {
-    fetch('/api/auth/turnstile-config')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.siteKey) {
-          setSiteKey(data.siteKey);
-        }
-      })
-      .catch((e) => console.warn('Turnstile config load note:', e));
-  }, []);
+  // Keep callback refs stable so parent re-renders / typing in input fields never trigger widget remounts
+  const onVerifyRef = useRef(onVerify);
+  const onExpireRef = useRef(onExpire);
+  const onErrorRef = useRef(onError);
 
   useEffect(() => {
-    let isMounted = true;
+    onVerifyRef.current = onVerify;
+    onExpireRef.current = onExpire;
+    onErrorRef.current = onError;
+  });
+
+  useEffect(() => {
+    let isCancelled = false;
 
     const renderWidget = () => {
-      if (!isMounted || !containerRef.current || !window.turnstile || !siteKey) return;
-
-      if (widgetIdRef.current) {
-        try {
-          window.turnstile.remove(widgetIdRef.current);
-        } catch {}
-        widgetIdRef.current = null;
+      if (
+        isCancelled ||
+        !containerRef.current ||
+        !window.turnstile ||
+        isRenderedRef.current
+      ) {
+        return;
       }
 
       try {
-        widgetIdRef.current = window.turnstile.render(containerRef.current, {
+        isRenderedRef.current = true;
+        const id = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
+          action: action,
           theme: theme,
           callback: (token: string) => {
-            if (isMounted) onVerify(token);
+            if (!isCancelled && onVerifyRef.current) {
+              onVerifyRef.current(token);
+            }
           },
           'expired-callback': () => {
-            if (isMounted && onExpire) onExpire();
+            if (!isCancelled && onExpireRef.current) {
+              onExpireRef.current();
+            }
           },
           'error-callback': () => {
-            if (isMounted && onError) onError();
+            if (!isCancelled && onErrorRef.current) {
+              onErrorRef.current();
+            }
           },
         });
-      } catch (e) {
-        console.warn('Turnstile render note:', e);
+        widgetIdRef.current = id;
+      } catch (err) {
+        console.warn('Turnstile render exception:', err);
       }
     };
 
-    const existingScript = document.getElementById('cf-turnstile-script');
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.id = 'cf-turnstile-script';
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    // Load Cloudflare Turnstile script if not already present
+    const SCRIPT_ID = 'cf-turnstile-script';
+    let script = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
+
+    if (!script) {
+      script = document.createElement('script');
+      script.id = SCRIPT_ID;
+      script.src =
+        'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
       script.async = true;
       script.defer = true;
       script.onload = () => {
@@ -101,28 +120,31 @@ export function TurnstileWidget({
       if (window.turnstile) {
         renderWidget();
       } else {
-        existingScript.addEventListener('load', renderWidget);
+        script.addEventListener('load', renderWidget, { once: true });
       }
     }
 
     return () => {
-      isMounted = false;
+      isCancelled = true;
       if (widgetIdRef.current && window.turnstile) {
         try {
           window.turnstile.remove(widgetIdRef.current);
         } catch {}
+        widgetIdRef.current = null;
+        isRenderedRef.current = false;
       }
     };
-  }, [siteKey, onVerify, onExpire, onError, theme]);
+  }, [siteKey, action, theme]); // Only re-mount if siteKey/action/theme truly changes!
 
   return (
     <div
-      className="turnstile-container"
+      className="turnstile-wrapper"
       style={{
-        margin: '12px 0',
+        margin: '14px 0',
         minHeight: '65px',
         display: 'flex',
         justifyContent: 'center',
+        alignItems: 'center',
       }}
     >
       <div ref={containerRef} />

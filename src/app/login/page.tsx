@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { TurnstileWidget } from '@/components/TurnstileWidget';
 
@@ -13,6 +13,14 @@ export default function LoginPage() {
   const [turnstileToken, setTurnstileToken] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ text: string; isError?: boolean } | null>(null);
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -246,10 +254,12 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Cloudflare Turnstile Bot Protection Widget */}
+          {/* Stable Cloudflare Turnstile Bot Protection Widget */}
           <TurnstileWidget
-            onVerify={(token) => setTurnstileToken(token)}
-            onExpire={() => setTurnstileToken('')}
+            key={authMode}
+            action={authMode}
+            onVerify={handleTurnstileVerify}
+            onExpire={handleTurnstileExpire}
           />
 
           <button

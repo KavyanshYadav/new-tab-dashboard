@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PublicUser } from '@/lib/types';
 import { TurnstileWidget } from './TurnstileWidget';
 
@@ -59,6 +59,14 @@ export function AuthModal({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('');
+  }, []);
 
   if (!isOpen) return null;
 
@@ -280,10 +288,12 @@ export function AuthModal({
             />
           </div>
 
-          {/* Cloudflare Turnstile Bot Protection Widget */}
+          {/* Stable Cloudflare Turnstile Bot Protection Widget */}
           <TurnstileWidget
-            onVerify={(token) => setTurnstileToken(token)}
-            onExpire={() => setTurnstileToken('')}
+            key={authMode}
+            action={authMode}
+            onVerify={handleTurnstileVerify}
+            onExpire={handleTurnstileExpire}
           />
 
           <button
