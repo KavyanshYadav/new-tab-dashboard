@@ -319,6 +319,25 @@
   font-family: 'JetBrains Mono', monospace, sans-serif !important;
 }
 
+.__nt_spotlight_close {
+  background: none !important;
+  border: none !important;
+  color: #71717a !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  margin-left: 8px !important;
+  transition: color 0.15s ease, background 0.15s ease !important;
+}
+
+.__nt_spotlight_close:hover {
+  color: #ffffff !important;
+  background: #232328 !important;
+}
+
+
 .__nt_spotlight_results {
   max-height: 340px !important;
   overflow-y: auto !important;

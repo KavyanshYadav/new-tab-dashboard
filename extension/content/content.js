@@ -15,46 +15,86 @@
   let selectedIndex = 0;
   let filteredResults = [];
 
-  // Load configured hotkey from storage
-  function loadHotkey() {
+  // Load configured hotkey & cached shortcuts on script boot
+  function initExtensionState() {
     try {
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-        chrome.storage.sync.get(['launcherHotkey'], (data) => {
-          if (data && data.launcherHotkey) {
-            currentHotkey = String(data.launcherHotkey).toLowerCase().trim() || 'u';
-          }
-        });
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        if (chrome.storage.sync) {
+          chrome.storage.sync.get(['launcherHotkey'], (data) => {
+            if (data && data.launcherHotkey) {
+              currentHotkey = String(data.launcherHotkey).toLowerCase().trim() || 'u';
+            }
+          });
 
-        chrome.storage.onChanged.addListener((changes, area) => {
-          if (area === 'sync' && changes.launcherHotkey) {
-            currentHotkey = String(changes.launcherHotkey.newValue || 'u').toLowerCase().trim();
-          }
-        });
+          chrome.storage.onChanged.addListener((changes, area) => {
+            if (area === 'sync' && changes.launcherHotkey) {
+              currentHotkey = String(changes.launcherHotkey.newValue || 'u').toLowerCase().trim();
+            }
+          });
+        }
+
+        if (chrome.storage.local) {
+          chrome.storage.local.get(['nt_cached_shortcuts'], (data) => {
+            if (data && Array.isArray(data.nt_cached_shortcuts)) {
+              allShortcutsCache = data.nt_cached_shortcuts;
+            }
+          });
+        }
       }
     } catch (e) {
-      console.warn('Storage read note:', e);
+      console.warn('Extension state init note:', e);
     }
   }
-  loadHotkey();
+  initExtensionState();
 
   function isEditableElement(el) {
     if (!el) return false;
+    if (el.classList && el.classList.contains('__nt_spotlight_input')) return false;
     const tag = (el.tagName || '').toUpperCase();
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
     if (el.isContentEditable || el.getAttribute?.('contenteditable') === 'true') return true;
     return false;
   }
 
-  // Global keydown listener with CAPTURE phase so websites cannot swallow the hotkey
+  // Global keydown listener with CAPTURE phase
   window.addEventListener(
     'keydown',
     (e) => {
-      // If modal is open, let modal handle its own Esc/Arrow/Enter
+      // 1. If Spotlight overlay is open: Escape ALWAYS closes it on single press
       if (spotlightOverlay) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          e.stopPropagation();
+          closeSpotlight();
+          return;
+        }
+
+        // If hotkey is pressed again outside of typed search, toggle/close it
+        const pressedKey = (e.key || '').toLowerCase();
+        const hotkey = (currentHotkey || 'u').toLowerCase();
+        if (pressedKey === hotkey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+          const inputEl = spotlightOverlay.querySelector('.__nt_spotlight_input');
+          if (e.target !== inputEl || (inputEl && !inputEl.value.trim())) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeSpotlight();
+            return;
+          }
+        }
         return;
       }
 
-      // Never trigger while typing in inputs, textareas, contenteditable
+      // 2. If Link Add Modal is open: Escape closes it
+      if (activeModal && e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        activeModal.remove();
+        activeModal = null;
+        return;
+      }
+
+      // Never trigger while typing in host webpage inputs/textareas
       if (isEditableElement(e.target) || isEditableElement(document.activeElement)) {
         return;
       }
@@ -231,17 +271,9 @@
 
     overlay.querySelector('.__nt_modal_close').addEventListener('click', closeModal);
     overlay.querySelector('.__nt_cancel').addEventListener('click', closeModal);
-    overlay.addEventListener('click', (e) => {
+    overlay.addEventListener('mousedown', (e) => {
       if (e.target === overlay) closeModal();
     });
-
-    const escHandler = (e) => {
-      if (e.key === 'Escape') {
-        closeModal();
-        window.removeEventListener('keydown', escHandler);
-      }
-    };
-    window.addEventListener('keydown', escHandler);
 
     const form = overlay.querySelector('.__nt_form');
     form.addEventListener('submit', async (e) => {
@@ -338,6 +370,7 @@
             spellcheck="false"
           />
           <div class="__nt_spotlight_badge">PINNED</div>
+          <button type="button" class="__nt_spotlight_close" title="Close (Esc)">&times;</button>
         </div>
 
         <div class="__nt_spotlight_results" id="__nt_spotlight_list">
@@ -347,7 +380,7 @@
         <div class="__nt_spotlight_footer">
           <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
           <span><kbd>↵</kbd> open</span>
-          <span><kbd>esc</kbd> dismiss</span>
+          <span><kbd>esc</kbd> or <kbd>${currentHotkey.toUpperCase()}</kbd> dismiss</span>
         </div>
       </div>
     `;
@@ -357,29 +390,39 @@
     spotlightOverlay = overlay;
 
     const input = overlay.querySelector('.__nt_spotlight_input');
+    const closeBtn = overlay.querySelector('.__nt_spotlight_close');
     const resultsContainer = overlay.querySelector('#__nt_spotlight_list');
 
     setTimeout(() => {
       input.focus();
     }, 20);
 
-    overlay.addEventListener('click', (e) => {
+    // Backdrop click / mousedown to close immediately
+    overlay.addEventListener('mousedown', (e) => {
       if (e.target === overlay) closeSpotlight();
     });
 
-    // Fetch shortcuts from background
-    try {
-      const resp = await chrome.runtime.sendMessage({ type: 'GET_SHORTCUTS' });
-      if (resp && resp.success && Array.isArray(resp.shortcuts)) {
-        allShortcutsCache = resp.shortcuts;
-      } else {
-        allShortcutsCache = [];
-      }
-    } catch (err) {
-      console.warn('Could not fetch shortcuts from background:', err);
-    }
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeSpotlight();
+    });
 
-    renderResults('');
+    // 1. INSTANT RENDER FROM LOCAL STATE (0ms delay)
+    renderResults(input.value || '');
+
+    // 2. BACKGROUND FETCH (5s Throttled / DDoS Protected)
+    (async () => {
+      try {
+        const resp = await chrome.runtime.sendMessage({ type: 'GET_SHORTCUTS' });
+        if (resp && resp.success && Array.isArray(resp.shortcuts)) {
+          allShortcutsCache = resp.shortcuts;
+          // Re-render with fresh data while preserving whatever user is currently typing
+          renderResults(input ? input.value : '');
+        }
+      } catch (err) {
+        console.warn('Background sync note:', err);
+      }
+    })();
 
     // Real-time search filter
     input.addEventListener('input', (e) => {
@@ -388,10 +431,12 @@
 
     // Keyboard navigation
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' || (e.key.toLowerCase() === currentHotkey.toLowerCase() && !input.value)) {
+      if (e.key === 'Escape' || (e.key.toLowerCase() === currentHotkey.toLowerCase() && !input.value.trim())) {
         e.preventDefault();
+        e.stopImmediatePropagation();
         e.stopPropagation();
         closeSpotlight();
+        return;
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         if (filteredResults.length > 0) {
@@ -425,7 +470,6 @@
 
       let matches = [];
       if (!q) {
-        // Prioritize pinned shortcuts, fallback to all
         matches = allShortcutsCache.filter((s) => s.pinned);
         if (matches.length === 0) {
           matches = allShortcutsCache;
@@ -445,7 +489,7 @@
       if (filteredResults.length === 0) {
         resultsContainer.innerHTML = `
           <div class="__nt_spotlight_empty">
-            ${q ? `No shortcuts found matching &ldquo;${escapeHtml(q)}&rdquo;` : 'No shortcuts found. Configure your API key in extension settings.'}
+            ${q ? `No shortcuts found matching &ldquo;${escapeHtml(q)}&rdquo;` : (allShortcutsCache.length === 0 ? 'Loading shortcuts...' : 'No pinned shortcuts found.')}
           </div>
         `;
         return;
@@ -541,7 +585,7 @@
     if (message.type === 'SHOW_TOAST') {
       showToast(message.message, !!message.error);
     } else if (message.type === 'OPEN_LAUNCHER') {
-      openSpotlight();
+      toggleSpotlight();
     }
   });
 })();

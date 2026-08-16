@@ -18,9 +18,16 @@ export const metadata: Metadata = {
   title: 'New Tab',
   description: 'Minimalist, keyboard-first developer browser start page and bookmarks dashboard',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/icon.png', sizes: '128x128', type: 'image/png' },
+      { url: '/icon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/icon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon.ico' },
+    ],
+    apple: '/icon.png',
   },
 };
+
 
 export default function RootLayout({
   children,

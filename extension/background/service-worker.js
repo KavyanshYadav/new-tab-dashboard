@@ -2,6 +2,7 @@
 
 const DEFAULT_APP_URL = 'http://localhost:3001';
 const DEFAULT_HOTKEY = 'u';
+const FETCH_THROTTLE_MS = 5000; // 5-second minimum gap between network fetches to prevent DDoS
 
 // Setup Context Menus on install
 chrome.runtime.onInstalled.addListener(() => {
@@ -26,6 +27,22 @@ async function getConfig() {
     apiKey: data.apiKey || '',
     launcherHotkey: data.launcherHotkey || DEFAULT_HOTKEY,
   };
+}
+
+// Local Cache Helpers for Shortcuts with 5s Throttle
+async function getCachedShortcuts() {
+  const data = await chrome.storage.local.get(['nt_cached_shortcuts', 'nt_last_fetch']);
+  return {
+    shortcuts: Array.isArray(data.nt_cached_shortcuts) ? data.nt_cached_shortcuts : [],
+    lastFetch: Number(data.nt_last_fetch) || 0,
+  };
+}
+
+async function setCachedShortcuts(shortcuts) {
+  await chrome.storage.local.set({
+    nt_cached_shortcuts: shortcuts,
+    nt_last_fetch: Date.now(),
+  });
 }
 
 // Flash badge on action icon
@@ -79,15 +96,20 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     if (!targetUrl) return;
 
-    await apiCall('/api/shortcuts', 'POST', {
+    const result = await apiCall('/api/shortcuts', 'POST', {
       url: targetUrl,
       name: targetName,
       pinned: false,
     });
 
+    if (result && result.shortcut) {
+      const cache = await getCachedShortcuts();
+      const updated = [result.shortcut, ...cache.shortcuts.filter((s) => s.id !== result.shortcut.id)];
+      await setCachedShortcuts(updated);
+    }
+
     await flashBadge('✓', '#9ece6a');
 
-    // Notify active tab if possible
     if (tab?.id) {
       chrome.tabs.sendMessage(tab.id, {
         type: 'SHOW_TOAST',
@@ -134,15 +156,65 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           apiKey: message.apiKey?.trim() || '',
           launcherHotkey: message.launcherHotkey?.trim().toLowerCase() || DEFAULT_HOTKEY,
         });
+        // Invalidate cache on config save
+        await chrome.storage.local.remove(['nt_last_fetch']);
         sendResponse({ success: true });
       } else if (message.type === 'SAVE_SHORTCUT') {
         const result = await apiCall('/api/shortcuts', 'POST', message.data);
+        if (result && result.shortcut) {
+          const cache = await getCachedShortcuts();
+          const updated = [result.shortcut, ...cache.shortcuts.filter((s) => s.id !== result.shortcut.id)];
+          await setCachedShortcuts(updated);
+        }
         await flashBadge('✓', '#9ece6a');
         sendResponse({ success: true, result });
       } else if (message.type === 'GET_SHORTCUTS') {
-        const query = message.pinnedOnly ? '?pinned=true' : '';
-        const result = await apiCall(`/api/shortcuts${query}`, 'GET');
-        sendResponse({ success: true, ...result });
+        const cache = await getCachedShortcuts();
+        const now = Date.now();
+        const timeSinceLastFetch = now - cache.lastFetch;
+        const isFresh = timeSinceLastFetch < FETCH_THROTTLE_MS;
+
+        // If data was fetched less than 5 seconds ago, immediately return cached state (No DDoS / 0 network lag)
+        if (isFresh && cache.shortcuts.length > 0 && !message.force) {
+          sendResponse({
+            success: true,
+            shortcuts: cache.shortcuts,
+            fromCache: true,
+            cachedMsAgo: timeSinceLastFetch,
+          });
+          return;
+        }
+
+        // Otherwise, fetch fresh data from server and update local cache
+        try {
+          const result = await apiCall('/api/shortcuts', 'GET');
+          if (result && Array.isArray(result.shortcuts)) {
+            await setCachedShortcuts(result.shortcuts);
+            sendResponse({
+              success: true,
+              shortcuts: result.shortcuts,
+              fromCache: false,
+            });
+          } else {
+            sendResponse({
+              success: true,
+              shortcuts: cache.shortcuts,
+              fromCache: true,
+            });
+          }
+        } catch (fetchErr) {
+          // If network fails, gracefully return cached shortcuts
+          if (cache.shortcuts.length > 0) {
+            sendResponse({
+              success: true,
+              shortcuts: cache.shortcuts,
+              fromCache: true,
+              warning: fetchErr.message,
+            });
+          } else {
+            sendResponse({ success: false, error: fetchErr.message });
+          }
+        }
       } else if (message.type === 'GET_CATEGORIES') {
         const result = await apiCall('/api/categories', 'GET');
         sendResponse({ success: true, ...result });
