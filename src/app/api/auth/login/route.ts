@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
-    const result = loginUser({
+    const result = await loginUser({
       identifier: finalIdentifier,
       password,
     });

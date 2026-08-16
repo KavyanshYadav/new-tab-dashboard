@@ -1,6 +1,6 @@
 # ✦ New Tab Dashboard & Chrome Extension
 
-A minimalist, high-efficiency, developer-first **Browser Start Page & Bookmarks Dashboard** built with **Next.js 16 (App Router + Turbopack + TypeScript + Vanilla CSS)** accompanied by a **Manifest V3 Chrome Extension** for 1-click & hover link saving, **Multi-User Isolation**, **Cloudflare Turnstile Bot Protection**, and **Curated Community Lists**.
+A minimalist, high-efficiency, developer-first **Browser Start Page & Bookmarks Dashboard** built with **Next.js 16 (App Router + Turbopack + TypeScript + Vanilla CSS)** accompanied by a **Manifest V3 Chrome Extension** for 1-click & hover link saving, **Spotlight Pinned Shortcuts Launcher (`U` / `Alt+U`)**, **Multi-User Isolation**, **Cloudflare Turnstile Bot Protection**, **Turso Cloud Database (libSQL / SQLite)**, and **Curated Community Lists**.
 
 ---
 
@@ -9,16 +9,22 @@ A minimalist, high-efficiency, developer-first **Browser Start Page & Bookmarks 
 ```
 new-tab-dashboard/
 ├── extension/                     # Manifest V3 Chrome Extension
-│   ├── manifest.json              # Extension manifest
-│   ├── background.js              # Service worker & context menu handlers
-│   ├── content.js                 # Hover "+ Dashboard" link overlay injector
-│   ├── popup.html / popup.js      # Extension popup (Save tab, categories, settings)
-│   └── styles.css                 # Dark-themed extension UI
+│   ├── manifest.json              # Extension manifest & commands API
+│   ├── background/
+│   │   └── service-worker.js      # Background service worker & context menus
+│   ├── content/
+│   │   ├── content.js             # Spotlight 'U' launcher & hover button injector
+│   │   └── content.css            # Dark glass Command Palette & modal styling
+│   ├── popup/
+│   │   ├── popup.html             # Extension popup (Save tab, settings, hotkey)
+│   │   ├── popup.js               # Popup logic & connection test
+│   │   └── popup.css              # Popup styling
+│   └── icons/                     # 16px, 48px, 128px extension icons
 ├── src/
 │   ├── app/
 │   │   ├── api/
 │   │   │   ├── auth/              # Registration, Login, Session, Turnstile Config
-│   │   │   ├── shortcuts/         # Protected CRUD API for bookmarks
+│   │   │   ├── shortcuts/         # Protected CRUD API for bookmarks (?pinned=true)
 │   │   │   ├── categories/        # Auto-suggested user categories
 │   │   │   └── key/               # API Key regeneration endpoint
 │   │   ├── login/                 # Standalone login / register page
@@ -40,9 +46,10 @@ new-tab-dashboard/
 │   ├── hooks/
 │   │   └── useDashboard.ts        # Dashboard state, guest storage, & cloud sync
 │   └── lib/
+│       ├── turso.ts               # Turso (libSQL) cloud client & schema auto-migrator
 │       ├── community-lists.ts     # Curated public stacks catalog (AI, Dev, etc.)
 │       ├── rate-limiter.ts        # In-memory sliding-window rate limiters & lockout
-│       ├── server-storage.ts      # Multi-user data store, password hashing, quotas
+│       ├── server-storage.ts      # Dual-engine cloud Turso + local fallback store
 │       ├── turnstile.ts           # Server-side Cloudflare siteverify validation
 │       ├── constants.ts           # Default shortcuts, engines, & storage keys
 │       ├── types.ts               # Complete TypeScript interfaces & schemas
@@ -64,18 +71,23 @@ new-tab-dashboard/
 - 🎨 **Favicon Fetching**: Google S2 Favicon integration with monogram fallback avatars.
 - 💾 **Data Portability**: Full JSON export/import and multi-mode sorting (`Recent`, `Most Visited`, `A–Z`).
 
+### 🗄️ Turso Serverless Cloud Database (libSQL / SQLite)
+- ☁️ **Permanent Cloud Persistence**: Automatically saves users, passwords, API keys, and bookmarks to [Turso](https://turso.tech) edge SQLite database.
+- 🔄 **Auto-Schema & Seed Migration**: Tables and indexes are created automatically on first boot, and bundled accounts are auto-migrated with zero manual SQL commands.
+- 🛡️ **Graceful Local Fallback**: When Turso environment variables are omitted, the app smoothly falls back to local file/memory storage.
+
 ### 🛡️ Security & Authentication
 - 🔐 **Multi-User Isolation**: User accounts structured around unique `userId` (`usr_...`), `@username`, `email`, salted SHA-256 `passwordHash`, and private `apiKey` (`nt_key_...`).
 - 🤖 **Cloudflare Turnstile Bot Protection**: Token verification protecting registration and login endpoints against automated bots, credential stuffing, and spam.
 - 🚦 **Anti-Sybil & Brute Force Rate Limiting**: Max 5 registrations per IP / 15 min, max 10 login attempts per 5 min, and automatic account lockout after 5 consecutive failed attempts.
 - 🛡️ **OWASP Security Headers**: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`.
-- 👤 **Guest Mode**: Logged-out visitors use local storage with zero network exposure.
+- 👤 **Guest Mode**: Logged-out visitors use local browser storage with zero network exposure.
 
 ### 🔌 Manifest V3 Chrome Extension
-- 🖱️ **Link Hover Quick Saver**: Hover over any link on any webpage to reveal a floating `+ Dashboard` button. Clicking opens an in-page modal to customize title, category, and pin status.
+- ⚡ **Spotlight Pinned Shortcuts Launcher**: Press **`U`** (or **`Alt+U`**) on ANY webpage to open a centered Command Palette to search and jump to pinned shortcuts instantly.
+- 🖱️ **Link Hover Quick Saver**: Hover over any link on any webpage to reveal a floating `+ Dashboard` button.
 - 📌 **Active Tab Saver**: Click the toolbar extension icon to save your current page in 1 click.
-- 📋 **Context Menu**: Right-click any link &rarr; *"Save link to New Tab Dashboard"*.
-- ⚙️ **Configurable Host & API Key**: Set your Dashboard URL (local or Vercel) and user API Key with real-time connection testing.
+- ⚙️ **Configurable Hotkey & API Key**: Customize the launcher hotkey and connect to your deployed domain.
 
 ---
 
@@ -87,11 +99,8 @@ new-tab-dashboard/
 
 ### 2. Installation
 ```bash
-# Clone the repository
 git clone https://github.com/KavyanshYadav/new-tab-dashboard.git
 cd new-tab-dashboard
-
-# Install dependencies
 npm install
 ```
 
@@ -101,10 +110,14 @@ Copy `.env.example` to `.env.local`:
 cp .env.example .env.local
 ```
 
-Configure your Cloudflare Turnstile keys (optional for local testing, official testing keys are enabled by default):
+Configure your Cloudflare Turnstile & Turso keys:
 ```env
 TURNSTILE_SITE_KEY=your_cloudflare_site_key
 TURNSTILE_SECRET_KEY=your_cloudflare_secret_key
+
+# Optional: Turso Cloud Database
+TURSO_DATABASE_URL=libsql://your-database-name-your-org.turso.io
+TURSO_AUTH_TOKEN=your_turso_auth_token
 ```
 
 ### 4. Running the Development Server
@@ -115,20 +128,40 @@ Open **[http://localhost:3001](http://localhost:3001)** in your browser.
 
 ---
 
+## 🗄️ Setting Up Free Turso Database for Vercel
+
+1. Create a free account at **[turso.tech](https://turso.tech)** (or install the CLI: `npm install -g @turso/cli`).
+2. Create a database:
+   ```bash
+   turso db create new-tab-db
+   ```
+3. Get your Database URL:
+   ```bash
+   turso db show new-tab-db --url
+   # Example: libsql://new-tab-db-username.turso.io
+   ```
+4. Create an Auth Token:
+   ```bash
+   turso db tokens create new-tab-db
+   ```
+5. In **Vercel &rarr; Project Settings &rarr; Environment Variables**, add:
+   - `TURSO_DATABASE_URL`
+   - `TURSO_AUTH_TOKEN`
+6. Redeploy! Turso will automatically create the tables and persist all user accounts and shortcuts permanently.
+
+---
+
 ## 🧩 Installing the Chrome Extension
 
 1. Open Google Chrome and navigate to `chrome://extensions`.
 2. Enable **Developer mode** in the top-right corner.
-3. Click **Load unpacked** (top-left).
-4. Select the `extension/` folder in this repository.
-5. In your running Dashboard at [http://localhost:3001](http://localhost:3001), click **`extension & api`** to copy your **API Key**.
-6. Open the Chrome Extension popup &rarr; **Settings** tab &rarr; paste your **Dashboard URL** and **API Key** &rarr; click **Test Connection** & **Save Settings**.
+3. Click **Load unpacked** and select the `extension/` folder.
+4. Open the extension popup &rarr; **Settings** tab &rarr; set Dashboard URL to `https://aufvim.tech` (or `http://localhost:3001`) and enter your **API Key**.
+5. Press **`U`** (or **`Alt+U`**) on any webpage to launch your pinned shortcuts!
 
 ---
 
 ## 📡 REST API Reference
-
-All protected endpoints require either `x-api-key` or `x-user-id` in the request headers.
 
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :---: |
@@ -136,25 +169,11 @@ All protected endpoints require either `x-api-key` or `x-user-id` in the request
 | `POST` | `/api/auth/login` | Sign in (with Turnstile validation) | Public (Rate limited) |
 | `GET` | `/api/auth/me` | Fetch active user session | Yes (`x-api-key` / `x-user-id`) |
 | `GET` | `/api/auth/turnstile-config` | Public Turnstile site key endpoint | Public |
-| `GET` | `/api/shortcuts` | List user's shortcuts | Yes |
+| `GET` | `/api/shortcuts` | List user's shortcuts (`?pinned=true` supported) | Yes |
 | `POST` | `/api/shortcuts` | Add a new shortcut (from Extension) | Yes |
 | `PUT` | `/api/shortcuts` | Sync full shortcut list | Yes |
 | `GET` | `/api/categories` | Get user category suggestions | Yes |
 | `POST` | `/api/key` | Regenerate API Key | Yes |
-
----
-
-## 🌐 Deploying to Vercel
-
-```bash
-npx vercel
-```
-Or import this repository directly into [Vercel](https://vercel.com).
-
-### Vercel Environment Variables:
-Under **Project Settings &rarr; Environment Variables**, add:
-- `TURNSTILE_SITE_KEY`: Your Cloudflare Turnstile public site key.
-- `TURNSTILE_SECRET_KEY`: Your Cloudflare Turnstile private secret key.
 
 ---
 

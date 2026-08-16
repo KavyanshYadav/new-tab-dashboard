@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     return jsonResponse({ user: null });
   }
 
-  const user = findUser({ userId, apiKey, email });
+  const user = await findUser({ userId, apiKey, email });
   if (!user) {
     return jsonResponse({ user: null });
   }

@@ -684,10 +684,19 @@
           "pinned": true,
           "clicks": 0,
           "added": 1786913433626
+        },
+        {
+          "id": "3c4179ff-834f-4b79-b933-e7e7d42d611d",
+          "url": "https://news.ycombinator.com",
+          "name": "Hacker News (Extension Test)",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786914033026
         }
       ],
       "createdAt": 1786913422786,
-      "updatedAt": 1786913433626
+      "updatedAt": 1786914033026
     }
   },
   "apiKeyIndex": {

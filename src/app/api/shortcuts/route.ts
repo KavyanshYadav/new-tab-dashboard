@@ -42,12 +42,12 @@ export async function GET(req: NextRequest) {
     return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
   }
 
-  const user = findUser({ userId, apiKey });
+  const user = await findUser({ userId, apiKey });
   if (!user) {
     return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
   }
 
-  let shortcuts = getUserShortcuts(user.userId) || [];
+  let shortcuts = (await getUserShortcuts(user.userId)) || [];
   const onlyPinned = req.nextUrl.searchParams.get('pinned') === 'true';
   if (onlyPinned) {
     shortcuts = shortcuts.filter((s) => s.pinned);
@@ -61,7 +61,6 @@ export async function GET(req: NextRequest) {
     total: shortcuts.length,
   });
 }
-
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
@@ -82,7 +81,7 @@ export async function POST(req: NextRequest) {
     return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
   }
 
-  const user = findUser({ userId, apiKey });
+  const user = await findUser({ userId, apiKey });
   if (!user) {
     return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
   }
@@ -93,7 +92,7 @@ export async function POST(req: NextRequest) {
       return jsonResponse({ error: 'Missing "url" in request body' }, 400);
     }
 
-    const result = addUserShortcut(user.userId, {
+    const result = await addUserShortcut(user.userId, {
       url: body.url,
       name: body.name,
       category: body.category,
@@ -137,7 +136,7 @@ export async function DELETE(req: NextRequest) {
     return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
   }
 
-  const user = findUser({ userId, apiKey });
+  const user = await findUser({ userId, apiKey });
   if (!user) {
     return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
   }
@@ -153,7 +152,7 @@ export async function DELETE(req: NextRequest) {
       return jsonResponse({ error: 'Missing shortcut ID' }, 400);
     }
 
-    const deleted = deleteUserShortcut(user.userId, id);
+    const deleted = await deleteUserShortcut(user.userId, id);
     if (!deleted) {
       return jsonResponse({ error: 'Shortcut not found or could not be deleted' }, 404);
     }
@@ -187,7 +186,7 @@ export async function PUT(req: NextRequest) {
     return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
   }
 
-  const user = findUser({ userId, apiKey });
+  const user = await findUser({ userId, apiKey });
   if (!user) {
     return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
   }
@@ -198,7 +197,7 @@ export async function PUT(req: NextRequest) {
       return jsonResponse({ error: 'Body must contain shortcuts array' }, 400);
     }
 
-    setAllUserShortcuts(user.userId, body.shortcuts);
+    await setAllUserShortcuts(user.userId, body.shortcuts);
 
     return jsonResponse({
       success: true,

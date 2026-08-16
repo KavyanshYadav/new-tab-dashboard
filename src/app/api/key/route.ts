@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     return jsonResponse({ valid: false, error: 'Unauthorized: User ID or API key is required' }, 401);
   }
 
-  const user = findUser({ userId, apiKey });
+  const user = await findUser({ userId, apiKey });
   if (!user) {
     return jsonResponse({ valid: false, error: 'Unauthorized: Account not found' }, 401);
   }
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     userId: user.userId,
     username: user.username,
     apiKey: user.apiKey,
-    totalShortcuts: user.shortcuts.length,
+    totalShortcuts: user.shortcuts ? user.shortcuts.length : 0,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   });
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       return jsonResponse({ error: 'Unauthorized: Only signed-in users can regenerate an API key' }, 401);
     }
 
-    const user = findUser({ userId, apiKey });
+    const user = await findUser({ userId, apiKey });
     if (!user) {
       return jsonResponse({ error: 'Unauthorized: User not found' }, 401);
     }
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
-    const newApiKey = regenerateUserApiKey(user.userId);
+    const newApiKey = await regenerateUserApiKey(user.userId);
 
     return jsonResponse(
       {
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
         userId: user.userId,
         username: user.username,
         apiKey: newApiKey,
-        totalShortcuts: user.shortcuts.length,
+        totalShortcuts: user.shortcuts ? user.shortcuts.length : 0,
         createdAt: user.createdAt,
       },
       201

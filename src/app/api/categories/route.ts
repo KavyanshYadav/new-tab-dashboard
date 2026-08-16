@@ -23,12 +23,12 @@ export async function GET(req: NextRequest) {
     return jsonResponse({ error: 'Unauthorized' }, 401);
   }
 
-  const user = findUser({ userId, apiKey });
+  const user = await findUser({ userId, apiKey });
   if (!user) {
     return jsonResponse({ error: 'Unauthorized: User not found' }, 401);
   }
 
-  const categories = getUserCategories(user.userId);
+  const categories = await getUserCategories(user.userId);
   return jsonResponse({
     userId: user.userId,
     categories,
