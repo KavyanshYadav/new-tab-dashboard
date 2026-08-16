@@ -8,6 +8,7 @@ interface UtilityBarProps {
   sites: Shortcut[];
   onCycleSort: () => void;
   onOpenPopular: () => void;
+  onOpenCommunityLists: () => void;
   onOpenApiSettings: () => void;
   onImportSites: (imported: Shortcut[]) => void;
   onClearAll: () => void;
@@ -19,6 +20,7 @@ export function UtilityBar({
   sites,
   onCycleSort,
   onOpenPopular,
+  onOpenCommunityLists,
   onOpenApiSettings,
   onImportSites,
   onClearAll,
@@ -93,6 +95,10 @@ export function UtilityBar({
   return (
     <>
       <footer className="util-bar mono" aria-label="Utility Actions">
+        <button type="button" id="communityBtn" onClick={onOpenCommunityLists} style={{ color: '#ececee' }}>
+          🌐 community lists
+        </button>
+        <span className="dot">·</span>
         <button type="button" id="popularBtn" onClick={onOpenPopular}>
           browse popular
         </button>
@@ -104,6 +110,7 @@ export function UtilityBar({
         <button type="button" id="apiBtn" onClick={onOpenApiSettings} title="Chrome Extension & API Settings">
           extension &amp; api
         </button>
+
         <span className="dot">·</span>
         <button type="button" id="exportBtn" onClick={handleExport}>
           export

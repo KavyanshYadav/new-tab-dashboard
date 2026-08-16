@@ -58,3 +58,21 @@ export interface PublicUser {
   totalShortcuts?: number;
   createdAt?: number;
 }
+
+export interface CommunityLink {
+  name: string;
+  url: string;
+  description?: string;
+  category?: string;
+  icon?: string;
+}
+
+export interface CommunityList {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  badge?: string;
+  icon?: string;
+  links: CommunityLink[];
+}

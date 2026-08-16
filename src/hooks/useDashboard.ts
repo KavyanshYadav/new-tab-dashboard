@@ -6,12 +6,15 @@ import { DEFAULT_SHORTCUTS, PREFS_KEY, STORAGE_KEY, API_KEY_STORAGE } from '@/li
 import { hostname } from '@/lib/utils';
 
 const USER_SESSION_STORAGE = 'nt_user_session_v1';
+const COMMUNITY_LISTS_STORAGE = 'nt_community_lists_v1';
+const DEFAULT_COMMUNITY_LISTS = ['ai-tools', 'web-dev'];
 
 export function useDashboard() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [user, setUser] = useState<PublicUser | null>(null);
   const [apiKey, setApiKey] = useState<string>('');
   const [sites, setSites] = useState<Shortcut[]>([]);
+  const [enabledCommunityLists, setEnabledCommunityLists] = useState<string[]>(DEFAULT_COMMUNITY_LISTS);
   const [prefs, setPrefs] = useState<Preferences>({
     engine: 0,
     tag: 'All',
@@ -19,6 +22,7 @@ export function useDashboard() {
   });
   const [lastDeleted, setLastDeleted] = useState<{ site: Shortcut; index: number } | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
+
 
   const userRef = useRef<PublicUser | null>(null);
   const apiKeyRef = useRef<string>('');
@@ -114,7 +118,18 @@ export function useDashboard() {
       }
     } catch {}
 
+    try {
+      const storedLists = localStorage.getItem(COMMUNITY_LISTS_STORAGE);
+      if (storedLists) {
+        const parsedLists = JSON.parse(storedLists);
+        if (Array.isArray(parsedLists)) {
+          setEnabledCommunityLists(parsedLists);
+        }
+      }
+    } catch {}
+
     setSites(initialLocalSites);
+
 
     // Check if URL has ?key=
     let urlKey = '';
@@ -400,6 +415,39 @@ export function useDashboard() {
     showToast('Cleared all shortcuts');
   }, [saveSites, showToast]);
 
+  const toggleCommunityList = useCallback((listId: string) => {
+    setEnabledCommunityLists((prev) => {
+      let next: string[];
+      if (prev.includes(listId)) {
+        next = prev.filter((id) => id !== listId);
+        showToast('Removed community list from dashboard');
+      } else {
+        next = [...prev, listId];
+        showToast('Added community list to dashboard');
+      }
+      try {
+        localStorage.setItem(COMMUNITY_LISTS_STORAGE, JSON.stringify(next));
+      } catch (e) {
+        console.error('Failed to save community lists to localStorage', e);
+      }
+      return next;
+    });
+  }, [showToast]);
+
+  const removeCommunityList = useCallback((listId: string) => {
+    setEnabledCommunityLists((prev) => {
+      const next = prev.filter((id) => id !== listId);
+      try {
+        localStorage.setItem(COMMUNITY_LISTS_STORAGE, JSON.stringify(next));
+      } catch (e) {
+        console.error('Failed to save community lists to localStorage', e);
+      }
+      return next;
+    });
+    showToast('Community list removed');
+  }, [showToast]);
+
+
   // Derived state
   const pinnedSites = useMemo(() => sites.filter((s) => s.pinned), [sites]);
 
@@ -436,6 +484,7 @@ export function useDashboard() {
     user,
     apiKey,
     sites,
+    enabledCommunityLists,
     prefs,
     pinnedSites,
     filteredSites,
@@ -455,8 +504,11 @@ export function useDashboard() {
     cycleSort,
     importShortcuts,
     clearAllShortcuts,
+    toggleCommunityList,
+    removeCommunityList,
     regenerateApiKey,
     showToast,
     dismissToast,
   };
 }
+

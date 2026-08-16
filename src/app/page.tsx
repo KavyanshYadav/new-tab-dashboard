@@ -5,10 +5,12 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { Shortcut, PopularSite } from '@/lib/types';
 import { ClockHero } from '@/components/ClockHero';
 import { PinnedSection } from '@/components/PinnedSection';
+import { CommunitySection } from '@/components/CommunitySection';
 import { ShortcutsSection } from '@/components/ShortcutsSection';
 import { UtilityBar } from '@/components/UtilityBar';
 import { AddEditModal } from '@/components/AddEditModal';
 import { PopularSitesModal } from '@/components/PopularSitesModal';
+import { CommunityListsModal } from '@/components/CommunityListsModal';
 import { ApiSettingsModal } from '@/components/ApiSettingsModal';
 import { AuthModal } from '@/components/AuthModal';
 import { UserAvatarMenu } from '@/components/UserAvatarMenu';
@@ -19,6 +21,7 @@ export default function DashboardPage() {
     user,
     apiKey,
     sites,
+    enabledCommunityLists,
     prefs,
     pinnedSites,
     filteredSites,
@@ -38,6 +41,8 @@ export default function DashboardPage() {
     cycleSort,
     importShortcuts,
     clearAllShortcuts,
+    toggleCommunityList,
+    removeCommunityList,
     regenerateApiKey,
     showToast,
     dismissToast,
@@ -46,6 +51,7 @@ export default function DashboardPage() {
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
   const [editingSite, setEditingSite] = useState<Shortcut | null>(null);
   const [isPopularOpen, setIsPopularOpen] = useState(false);
+  const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [isApiSettingsOpen, setIsApiSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
@@ -116,6 +122,13 @@ export default function DashboardPage() {
         onClickSite={recordClick}
       />
 
+      {/* Public Curated Community Lists / Topic Rows */}
+      <CommunitySection
+        enabledListIds={enabledCommunityLists}
+        onRemoveList={removeCommunityList}
+        onOpenCommunityModal={() => setIsCommunityModalOpen(true)}
+      />
+
       {/* Main Shortcuts grid with Category filters & Open All */}
       <ShortcutsSection
         totalCount={sites.length}
@@ -131,12 +144,13 @@ export default function DashboardPage() {
         onClickSite={recordClick}
       />
 
-      {/* Footer utility bar: Browse popular, Sort switcher, Extension & API, Import, Export, Clear */}
+      {/* Footer utility bar: Community Lists, Browse popular, Sort switcher, Extension & API, Import, Export, Clear */}
       <UtilityBar
         sortMode={prefs.sort}
         sites={sites}
         onCycleSort={cycleSort}
         onOpenPopular={() => setIsPopularOpen(true)}
+        onOpenCommunityLists={() => setIsCommunityModalOpen(true)}
         onOpenApiSettings={() => setIsApiSettingsOpen(true)}
         onImportSites={importShortcuts}
         onClearAll={clearAllShortcuts}
@@ -161,6 +175,14 @@ export default function DashboardPage() {
         onAddSite={handleAddPopularSite}
       />
 
+      {/* Curated Community Lists Discovery Modal */}
+      <CommunityListsModal
+        isOpen={isCommunityModalOpen}
+        enabledListIds={enabledCommunityLists}
+        onClose={() => setIsCommunityModalOpen(false)}
+        onToggleList={toggleCommunityList}
+      />
+
       {/* Extension & API Settings Modal */}
       <ApiSettingsModal
         isOpen={isApiSettingsOpen}
@@ -171,7 +193,6 @@ export default function DashboardPage() {
         onRegenerateKey={regenerateApiKey}
         onShowToast={(msg) => showToast(msg)}
       />
-
 
       {/* Email & Password Authentication Modal */}
       <AuthModal
