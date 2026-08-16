@@ -20,8 +20,11 @@ const memoryDb: Database = {
   usernameIndex: {},
 };
 
-const DATA_DIR = path.join(process.cwd(), '.data');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
+// Database file locations (supporting both local dev and serverless /tmp)
+const LOCAL_DATA_DIR = path.join(process.cwd(), '.data');
+const LOCAL_DB_FILE = path.join(LOCAL_DATA_DIR, 'db.json');
+const TMP_DATA_DIR = path.join('/tmp', '.data');
+const TMP_DB_FILE = path.join(TMP_DATA_DIR, 'db.json');
 
 // Quotas and Guardrail Limits
 export const MAX_SHORTCUTS_PER_USER = 500;
@@ -73,58 +76,77 @@ function rebuildIndexes() {
   });
 }
 
-function initDb(): Database {
+function loadUsersFromFile(filePath: string): Record<string, UserRecord> {
+  const users: Record<string, UserRecord> = {};
   try {
-    if (typeof fs !== 'undefined' && fs.existsSync(DB_FILE)) {
-      const raw = fs.readFileSync(DB_FILE, 'utf-8');
+    if (typeof fs !== 'undefined' && fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf-8');
       const parsed = JSON.parse(raw);
-
       if (parsed && typeof parsed.users === 'object') {
-        const newUsers: Record<string, UserRecord> = {};
-
         Object.entries(parsed.users).forEach(([key, val]: [string, any]) => {
-          if (val.userId && val.username) {
-            newUsers[val.userId] = val;
-          } else {
-            const migratedUserId = val.userId || generateUserId();
-            const legacyApiKey = val.apiKey || (key.startsWith('nt_key_') ? key : generateApiKey());
-            const legacyUsername = val.username || `user_${migratedUserId.slice(4, 10)}`;
-            const legacyEmail = val.email || `${legacyUsername}@local.dev`;
-
-            newUsers[migratedUserId] = {
-              userId: migratedUserId,
-              username: legacyUsername,
-              email: legacyEmail,
+          if (val && typeof val === 'object') {
+            const uid = val.userId || key;
+            users[uid] = {
+              userId: uid,
+              username: val.username || `user_${uid.slice(4, 10)}`,
+              email: val.email || `${uid}@local.dev`,
               passwordHash: val.passwordHash || hashPassword('password123'),
-              apiKey: legacyApiKey,
+              apiKey: val.apiKey || generateApiKey(),
               shortcuts: Array.isArray(val.shortcuts) ? val.shortcuts.slice(0, MAX_SHORTCUTS_PER_USER) : DEFAULT_SHORTCUTS,
               createdAt: val.createdAt || Date.now(),
-              updatedAt: Date.now(),
+              updatedAt: val.updatedAt || Date.now(),
             };
           }
         });
-
-        memoryDb.users = newUsers;
       }
     }
   } catch (err) {
-    console.error('Error reading local db file:', err);
+    console.warn(`Could not read database at ${filePath}:`, err);
   }
+  return users;
+}
+
+function initDb(): Database {
+  // 1. Load bundled base users
+  const bundledUsers = loadUsersFromFile(LOCAL_DB_FILE);
+  // 2. Load runtime /tmp users (persists across warm invocations in serverless)
+  const tmpUsers = loadUsersFromFile(TMP_DB_FILE);
+
+  memoryDb.users = {
+    ...memoryDb.users,
+    ...bundledUsers,
+    ...tmpUsers,
+  };
 
   rebuildIndexes();
   return memoryDb;
 }
 
 function persistDb() {
+  const data = JSON.stringify(memoryDb, null, 2);
+
+  // Attempt local write
   try {
     if (typeof fs !== 'undefined') {
-      if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
+      if (!fs.existsSync(LOCAL_DATA_DIR)) {
+        fs.mkdirSync(LOCAL_DATA_DIR, { recursive: true });
       }
-      fs.writeFileSync(DB_FILE, JSON.stringify(memoryDb, null, 2), 'utf-8');
+      fs.writeFileSync(LOCAL_DB_FILE, data, 'utf-8');
     }
-  } catch (err) {
-    console.error('Error persisting db file (non-critical in serverless):', err);
+  } catch {
+    // Read-only filesystem in Vercel - expected
+  }
+
+  // Attempt /tmp write for serverless environments
+  try {
+    if (typeof fs !== 'undefined') {
+      if (!fs.existsSync(TMP_DATA_DIR)) {
+        fs.mkdirSync(TMP_DATA_DIR, { recursive: true });
+      }
+      fs.writeFileSync(TMP_DB_FILE, data, 'utf-8');
+    }
+  } catch {
+    // Non-critical fallback
   }
 }
 

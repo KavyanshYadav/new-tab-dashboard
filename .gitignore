@@ -40,6 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local data storage
-/.data/
+# local data storage (tracked for seed database in serverless)
 

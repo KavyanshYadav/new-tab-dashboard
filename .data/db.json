@@ -1,0 +1,735 @@
+{
+  "users": {
+    "usr_831252b87c9b68c4": {
+      "userId": "usr_831252b87c9b68c4",
+      "username": "user_831252",
+      "email": "user_831252@local.dev",
+      "passwordHash": "7ad7475913c04fb92fd8ef0c27d51e2d:1f04103d7f0b4d8b5876c37d9e2cb3fde693749adf7aa13bcf83c58ad9322d4df47e0c2d0553db4b0da0fd55952b885f4e69a918ca16c6ccaa55a547eb2d9ac9",
+      "apiKey": "nt_key_87f8446566681cbf74374601ce3682b7",
+      "shortcuts": [
+        {
+          "id": "init-1786906794793-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786906789793
+        },
+        {
+          "id": "init-1786906794793-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786906790793
+        },
+        {
+          "id": "init-1786906794793-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786906791793
+        },
+        {
+          "id": "init-1786906794793-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786906792793
+        },
+        {
+          "id": "init-1786906794793-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786906793793
+        }
+      ],
+      "createdAt": 1786906794793,
+      "updatedAt": 1786909626683
+    },
+    "usr_a2fa1c4bb355b227": {
+      "userId": "usr_a2fa1c4bb355b227",
+      "username": "user_a2fa1c",
+      "email": "user_a2fa1c@local.dev",
+      "passwordHash": "97b23b0c26bc7719a2d52aef52bda210:7bad69e8ac23e445d742878d983299f0d4a8e46049d8c6b3b0d38f2d7abb127feca0b9ce43426ffd6d01210cc4706ba86c5ce62460ffee691d45ce861da62d90",
+      "apiKey": "nt_key_1345e7faee857d9d063463f719795c18",
+      "shortcuts": [
+        {
+          "id": "init-1786906794836-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786906789836
+        },
+        {
+          "id": "init-1786906794836-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786906790836
+        },
+        {
+          "id": "init-1786906794836-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786906791836
+        },
+        {
+          "id": "init-1786906794836-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786906792836
+        },
+        {
+          "id": "init-1786906794836-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786906793836
+        },
+        {
+          "id": "a5f40e76-0b47-442a-b4a3-55496794a380",
+          "url": "https://laptop-updates.brave.com/download/BRV090?bitness=64",
+          "name": "Get Brave",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786906816854
+        }
+      ],
+      "createdAt": 1786906794836,
+      "updatedAt": 1786909626683
+    },
+    "usr_70f1c38a93b7b7e8": {
+      "userId": "usr_70f1c38a93b7b7e8",
+      "username": "user_70f1c3",
+      "email": "user_70f1c3@local.dev",
+      "passwordHash": "2d741a56a1d321ee4bbf8008acb7b203:19406855d8abd34b73aff32e03c2113d70d8cebef2b8d35a3761dc3cc8845d70f493bacef5e7dc4c3429f6cf5a48e1acecc1a4279f6b397f152f4c76ae410c11",
+      "apiKey": "nt_key_35d06d1d6d30ac00b8f98a061997894a",
+      "shortcuts": [
+        {
+          "id": "init-1786908518810-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786908513810
+        },
+        {
+          "id": "init-1786908518810-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786908514810
+        },
+        {
+          "id": "init-1786908518810-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786908515810
+        },
+        {
+          "id": "init-1786908518810-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786908516810
+        },
+        {
+          "id": "init-1786908518810-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786908517810
+        }
+      ],
+      "createdAt": 1786908518810,
+      "updatedAt": 1786909626684
+    },
+    "usr_738b4eb2f5c301d1": {
+      "userId": "usr_738b4eb2f5c301d1",
+      "username": "user_738b4e",
+      "email": "user_738b4e@local.dev",
+      "passwordHash": "ed172e6d7d78d938a0ca4d9b3a30db2f:aa8ee1e24f2f82b4afaa0fb3492c21d449aaf7aede478e3b454eafc5f33f3ee531bbb8d70505cc39828de1887b14781c5347f6fd49c1050c1b4fa7a315bab510",
+      "apiKey": "nt_key_7d646abd73935732b55e098247c53054",
+      "shortcuts": [
+        {
+          "id": "init-1786908518869-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786908513869
+        },
+        {
+          "id": "init-1786908518869-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786908514869
+        },
+        {
+          "id": "init-1786908518869-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786908515869
+        },
+        {
+          "id": "init-1786908518869-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786908516869
+        },
+        {
+          "id": "init-1786908518869-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786908517869
+        }
+      ],
+      "createdAt": 1786908518869,
+      "updatedAt": 1786909626684
+    },
+    "usr_8dc107fbea79eef6": {
+      "userId": "usr_8dc107fbea79eef6",
+      "username": "user_8dc107",
+      "email": "user_8dc107@local.dev",
+      "passwordHash": "11c32d00c5ef6425538bb36c03b5d414:2aa35d14a0ff745bb54367fa8f10a6352eb911d6ac934fa91fb5a2a0a4f9f2c885bacf61c700c0b9c16e5c7c4e2bf8660cdd38d01c6f6c16c1f6c4d2113bc75c",
+      "apiKey": "nt_key_f24d935ce4175d8f81ba2b06ad1244f0",
+      "shortcuts": [
+        {
+          "id": "init-1786908535979-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786908530979
+        },
+        {
+          "id": "init-1786908535979-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786908531979
+        },
+        {
+          "id": "init-1786908535979-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786908532979
+        },
+        {
+          "id": "init-1786908535979-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786908533979
+        },
+        {
+          "id": "init-1786908535979-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786908534979
+        }
+      ],
+      "createdAt": 1786908535979,
+      "updatedAt": 1786909626685
+    },
+    "usr_5eaf09cc47f690bd": {
+      "userId": "usr_5eaf09cc47f690bd",
+      "username": "alice_dev",
+      "email": "alice@example.com",
+      "passwordHash": "741c49e696e14a2250aa248839c563c0:1115f2698ca882940a8b17d1c841f6589aef16e7a247d2937c42d94d8f809bf40cfcae5d1abb9417612f9a9ea29bfe01c15ac14e0fc96dc2b69a748c3ead3b5e",
+      "apiKey": "nt_key_c0bd77dc7c5ac67057f09563744324b7",
+      "shortcuts": [
+        {
+          "id": "init-1786909626685-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909621685
+        },
+        {
+          "id": "init-1786909626685-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909622685
+        },
+        {
+          "id": "init-1786909626685-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909623685
+        },
+        {
+          "id": "init-1786909626685-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909624685
+        },
+        {
+          "id": "init-1786909626685-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909625685
+        },
+        {
+          "id": "0da5b932-6815-4ae0-995b-2ed89a3f368e",
+          "url": "https://news.ycombinator.com",
+          "name": "Hacker News",
+          "category": "News",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909627218
+        }
+      ],
+      "createdAt": 1786909626685,
+      "updatedAt": 1786909627218
+    },
+    "usr_0af5b59742a96a24": {
+      "userId": "usr_0af5b59742a96a24",
+      "username": "flooduser_1",
+      "email": "flood_1@test.com",
+      "passwordHash": "27ffa7e81fa8662d595e53d8b7279612:efc9c619da24419ee9515005bfb82bd80111a72767a4822192c75ea028ffae2f6f39d25bb900dc622f115d5f808ff35ebb203e210a2aa13c962a09ff103ec9a1",
+      "apiKey": "nt_key_3803922fb3349625242e63087b13a746",
+      "shortcuts": [
+        {
+          "id": "init-1786909813948-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909808948
+        },
+        {
+          "id": "init-1786909813948-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909809948
+        },
+        {
+          "id": "init-1786909813948-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909810948
+        },
+        {
+          "id": "init-1786909813948-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909811948
+        },
+        {
+          "id": "init-1786909813948-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909812948
+        }
+      ],
+      "createdAt": 1786909813948,
+      "updatedAt": 1786909813948
+    },
+    "usr_e2d6ffa95fa7492b": {
+      "userId": "usr_e2d6ffa95fa7492b",
+      "username": "flooduser_2",
+      "email": "flood_2@test.com",
+      "passwordHash": "aa8a4718a16aa309c0e751c57a9bf95f:9c9c0313119b20b8cba385498245d944620e7df768391f7a0c15ecfe85c5f91e36cbfe8054cac79eabcda0e2ff3e0a91f24a124c6f863590dccdc65ecc9a0dc0",
+      "apiKey": "nt_key_bd53954bbc113afa03c9966f28b37049",
+      "shortcuts": [
+        {
+          "id": "init-1786909813990-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909808990
+        },
+        {
+          "id": "init-1786909813990-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909809990
+        },
+        {
+          "id": "init-1786909813990-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909810990
+        },
+        {
+          "id": "init-1786909813990-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909811990
+        },
+        {
+          "id": "init-1786909813990-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909812990
+        }
+      ],
+      "createdAt": 1786909813990,
+      "updatedAt": 1786909813990
+    },
+    "usr_83c32ff0e5931674": {
+      "userId": "usr_83c32ff0e5931674",
+      "username": "flooduser_3",
+      "email": "flood_3@test.com",
+      "passwordHash": "284344c78a0ac6b3bd73ee3a0530f9e5:635b960b1b1a25269c347348e9106a0f1fdfd1dba5ea67c9e2fd1e577acbb04a82e75fd93da5b11488a7134781e5156ee4ce7b3ee203a055bbd8a1de8987319c",
+      "apiKey": "nt_key_895c9d33adf6cbb07fc664ea0b7d1a1f",
+      "shortcuts": [
+        {
+          "id": "init-1786909814032-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909809032
+        },
+        {
+          "id": "init-1786909814032-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909810032
+        },
+        {
+          "id": "init-1786909814032-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909811032
+        },
+        {
+          "id": "init-1786909814032-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909812032
+        },
+        {
+          "id": "init-1786909814032-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909813032
+        }
+      ],
+      "createdAt": 1786909814032,
+      "updatedAt": 1786909814032
+    },
+    "usr_5a2dedbaf9703804": {
+      "userId": "usr_5a2dedbaf9703804",
+      "username": "sec_test_user",
+      "email": "sec_test@test.com",
+      "passwordHash": "c0ce1fbc028de8e4cf91654c880ebdc4:f38c2930bd7168f4e8b625b985c21081cbb60ced10f9e4c795f9a95b11a73e5d71549f95dcb733dba9d0461fe4db1126d072252529a4177949b2ed0c0868980d",
+      "apiKey": "nt_key_a7661089402e7dccd1f826a3d86f6b1c",
+      "shortcuts": [
+        {
+          "id": "init-1786909814481-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909809481
+        },
+        {
+          "id": "init-1786909814481-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786909810481
+        },
+        {
+          "id": "init-1786909814481-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909811481
+        },
+        {
+          "id": "init-1786909814481-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909812481
+        },
+        {
+          "id": "init-1786909814481-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786909813481
+        }
+      ],
+      "createdAt": 1786909814481,
+      "updatedAt": 1786909814481
+    },
+    "usr_ae1af90fa3621c3f": {
+      "userId": "usr_ae1af90fa3621c3f",
+      "username": "ts_user1",
+      "email": "ts1@test.com",
+      "passwordHash": "246a6a7376c87d4381d00f4ef725d98f:cfd4b36554787e648e863586a1a88858313cd22e23b7fb84cdcd7f8afd4b5e4d509651223485526cd5daec6d075e21837604190890b98931d3896e23714e0399",
+      "apiKey": "nt_key_c35682037d8da087a99751bbf8ebfbe4",
+      "shortcuts": [
+        {
+          "id": "init-1786910060497-0",
+          "name": "GitHub",
+          "url": "github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786910055497
+        },
+        {
+          "id": "init-1786910060497-1",
+          "name": "ChatGPT",
+          "url": "chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786910056497
+        },
+        {
+          "id": "init-1786910060497-2",
+          "name": "YouTube",
+          "url": "youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786910057497
+        },
+        {
+          "id": "init-1786910060497-3",
+          "name": "Reddit",
+          "url": "reddit.com",
+          "category": "Social",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786910058497
+        },
+        {
+          "id": "init-1786910060497-4",
+          "name": "Hacker News",
+          "url": "news.ycombinator.com",
+          "category": "News",
+          "pinned": false,
+          "clicks": 0,
+          "added": 1786910059497
+        }
+      ],
+      "createdAt": 1786910060497,
+      "updatedAt": 1786910060497
+    },
+    "usr_d255b33a2d79b926": {
+      "userId": "usr_d255b33a2d79b926",
+      "username": "kavyansh",
+      "email": "kavyansh@example.com",
+      "passwordHash": "acb387e06800a55d8719bdc4e586ff1e:9ea21ff0ccd6b520378c202b28803cf6a2705be91b12a6e687b6299d63c3cd912ae32a958ad78b52ca291d55ed7f42c9fc85cf525fd816f3bd9d2d1615220010",
+      "apiKey": "nt_key_d255b33a2d79b92684536dc7f872da64",
+      "shortcuts": [
+        {
+          "id": "sc-1",
+          "name": "GitHub",
+          "url": "https://github.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 12,
+          "added": 1786912922786
+        },
+        {
+          "id": "sc-2",
+          "name": "ChatGPT",
+          "url": "https://chatgpt.com",
+          "category": "AI",
+          "pinned": true,
+          "clicks": 25,
+          "added": 1786913022786
+        },
+        {
+          "id": "sc-3",
+          "name": "Vercel",
+          "url": "https://vercel.com",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 8,
+          "added": 1786913122786
+        },
+        {
+          "id": "sc-4",
+          "name": "YouTube",
+          "url": "https://youtube.com",
+          "category": "Entertainment",
+          "pinned": false,
+          "clicks": 40,
+          "added": 1786913222786
+        },
+        {
+          "id": "a83a8146-5b54-4f0a-9b76-0071f83a67bc",
+          "url": "https://news.ycombinator.com",
+          "name": "Hacker News (Extension Test)",
+          "category": "Dev",
+          "pinned": true,
+          "clicks": 0,
+          "added": 1786913433626
+        }
+      ],
+      "createdAt": 1786913422786,
+      "updatedAt": 1786913433626
+    }
+  },
+  "apiKeyIndex": {
+    "nt_key_87f8446566681cbf74374601ce3682b7": "usr_831252b87c9b68c4",
+    "nt_key_1345e7faee857d9d063463f719795c18": "usr_a2fa1c4bb355b227",
+    "nt_key_35d06d1d6d30ac00b8f98a061997894a": "usr_70f1c38a93b7b7e8",
+    "nt_key_7d646abd73935732b55e098247c53054": "usr_738b4eb2f5c301d1",
+    "nt_key_f24d935ce4175d8f81ba2b06ad1244f0": "usr_8dc107fbea79eef6",
+    "nt_key_c0bd77dc7c5ac67057f09563744324b7": "usr_5eaf09cc47f690bd",
+    "nt_key_3803922fb3349625242e63087b13a746": "usr_0af5b59742a96a24",
+    "nt_key_bd53954bbc113afa03c9966f28b37049": "usr_e2d6ffa95fa7492b",
+    "nt_key_895c9d33adf6cbb07fc664ea0b7d1a1f": "usr_83c32ff0e5931674",
+    "nt_key_a7661089402e7dccd1f826a3d86f6b1c": "usr_5a2dedbaf9703804",
+    "nt_key_c35682037d8da087a99751bbf8ebfbe4": "usr_ae1af90fa3621c3f",
+    "nt_key_d255b33a2d79b92684536dc7f872da64": "usr_d255b33a2d79b926"
+  },
+  "emailIndex": {
+    "user_831252@local.dev": "usr_831252b87c9b68c4",
+    "user_a2fa1c@local.dev": "usr_a2fa1c4bb355b227",
+    "user_70f1c3@local.dev": "usr_70f1c38a93b7b7e8",
+    "user_738b4e@local.dev": "usr_738b4eb2f5c301d1",
+    "user_8dc107@local.dev": "usr_8dc107fbea79eef6",
+    "alice@example.com": "usr_5eaf09cc47f690bd",
+    "flood_1@test.com": "usr_0af5b59742a96a24",
+    "flood_2@test.com": "usr_e2d6ffa95fa7492b",
+    "flood_3@test.com": "usr_83c32ff0e5931674",
+    "sec_test@test.com": "usr_5a2dedbaf9703804",
+    "ts1@test.com": "usr_ae1af90fa3621c3f",
+    "kavyansh@example.com": "usr_d255b33a2d79b926"
+  },
+  "usernameIndex": {
+    "user_831252": "usr_831252b87c9b68c4",
+    "user_a2fa1c": "usr_a2fa1c4bb355b227",
+    "user_70f1c3": "usr_70f1c38a93b7b7e8",
+    "user_738b4e": "usr_738b4eb2f5c301d1",
+    "user_8dc107": "usr_8dc107fbea79eef6",
+    "alice_dev": "usr_5eaf09cc47f690bd",
+    "flooduser_1": "usr_0af5b59742a96a24",
+    "flooduser_2": "usr_e2d6ffa95fa7492b",
+    "flooduser_3": "usr_83c32ff0e5931674",
+    "sec_test_user": "usr_5a2dedbaf9703804",
+    "ts_user1": "usr_ae1af90fa3621c3f",
+    "kavyansh": "usr_d255b33a2d79b926"
+  }
+}
