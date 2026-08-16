@@ -19,5 +19,6 @@ export interface ApiResponse<T = any> {
   shortcuts?: Shortcut[];
   categories?: string[];
   shortcut?: Shortcut;
+  data?: T;
   user?: any;
 }
