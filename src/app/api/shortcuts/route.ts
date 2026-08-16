@@ -7,6 +7,7 @@ import {
   setAllUserShortcuts,
   findUser,
 } from '@/lib/server-storage';
+import { getClientIp, checkApiReadRateLimit, checkApiWriteRateLimit } from '@/lib/rate-limiter';
 
 export async function OPTIONS() {
   return handleOptions();
@@ -23,14 +24,27 @@ function extractUserCredentials(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
   const { userId, apiKey } = extractUserCredentials(req);
+  const rateKey = apiKey || userId || ip;
+
+  const rateCheck = checkApiReadRateLimit(rateKey);
+  if (!rateCheck.allowed) {
+    const res = jsonResponse(
+      { error: `Rate limit exceeded. Please wait ${rateCheck.resetSec} seconds.` },
+      429
+    );
+    res.headers.set('Retry-After', String(rateCheck.resetSec));
+    return res;
+  }
+
   if (!userId && !apiKey) {
-    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID. Only signed-in users can use the sync API.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
   }
 
   const user = findUser({ userId, apiKey });
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized: User account not found. Please register or sign in.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
   }
 
   const shortcuts = getUserShortcuts(user.userId) || [];
@@ -44,14 +58,27 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
   const { userId, apiKey } = extractUserCredentials(req);
+  const rateKey = apiKey || userId || ip;
+
+  const rateCheck = checkApiWriteRateLimit(rateKey);
+  if (!rateCheck.allowed) {
+    const res = jsonResponse(
+      { error: `Write rate limit exceeded. Please wait ${rateCheck.resetSec} seconds.` },
+      429
+    );
+    res.headers.set('Retry-After', String(rateCheck.resetSec));
+    return res;
+  }
+
   if (!userId && !apiKey) {
-    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID. Only signed-in users can use the sync API.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
   }
 
   const user = findUser({ userId, apiKey });
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized: User account not found. Please register or sign in.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
   }
 
   try {
@@ -71,26 +98,42 @@ export async function POST(req: NextRequest) {
       return jsonResponse({ error: result.error || 'Failed to add shortcut' }, 400);
     }
 
-    return jsonResponse({
-      success: true,
-      userId: user.userId,
-      shortcut: result.shortcut,
-      message: 'Shortcut added successfully',
-    }, 201);
+    return jsonResponse(
+      {
+        success: true,
+        userId: user.userId,
+        shortcut: result.shortcut,
+        message: 'Shortcut added successfully',
+      },
+      201
+    );
   } catch {
     return jsonResponse({ error: 'Invalid JSON payload' }, 400);
   }
 }
 
 export async function DELETE(req: NextRequest) {
+  const ip = getClientIp(req);
   const { userId, apiKey } = extractUserCredentials(req);
+  const rateKey = apiKey || userId || ip;
+
+  const rateCheck = checkApiWriteRateLimit(rateKey);
+  if (!rateCheck.allowed) {
+    const res = jsonResponse(
+      { error: `Write rate limit exceeded. Please wait ${rateCheck.resetSec} seconds.` },
+      429
+    );
+    res.headers.set('Retry-After', String(rateCheck.resetSec));
+    return res;
+  }
+
   if (!userId && !apiKey) {
-    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID. Only signed-in users can use the sync API.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
   }
 
   const user = findUser({ userId, apiKey });
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized: User account not found. Please register or sign in.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
   }
 
   try {
@@ -120,14 +163,27 @@ export async function DELETE(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const ip = getClientIp(req);
   const { userId, apiKey } = extractUserCredentials(req);
+  const rateKey = apiKey || userId || ip;
+
+  const rateCheck = checkApiWriteRateLimit(rateKey);
+  if (!rateCheck.allowed) {
+    const res = jsonResponse(
+      { error: `Write rate limit exceeded. Please wait ${rateCheck.resetSec} seconds.` },
+      429
+    );
+    res.headers.set('Retry-After', String(rateCheck.resetSec));
+    return res;
+  }
+
   if (!userId && !apiKey) {
-    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID. Only signed-in users can use the sync API.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
   }
 
   const user = findUser({ userId, apiKey });
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized: User account not found. Please register or sign in.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
   }
 
   try {

@@ -177,12 +177,12 @@ export function useDashboard() {
     checkSession();
   }, []); // Runs strictly ONCE on mount!
 
-  const login = useCallback(async (identifier: string, password?: string) => {
+  const login = useCallback(async (identifier: string, password?: string, turnstileToken?: string) => {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify({ identifier, password, turnstileToken }),
       });
 
       const data = await res.json();
@@ -222,12 +222,12 @@ export function useDashboard() {
     }
   }, [showToast]);
 
-  const register = useCallback(async (username: string, email: string, password: string) => {
+  const register = useCallback(async (username: string, email: string, password: string, turnstileToken?: string) => {
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, turnstileToken }),
       });
 
       const data = await res.json();
@@ -254,6 +254,7 @@ export function useDashboard() {
       return { success: false, error: 'Could not connect to auth server' };
     }
   }, [sites, syncToCloud, showToast]);
+
 
   const logout = useCallback(() => {
     setUser(null);

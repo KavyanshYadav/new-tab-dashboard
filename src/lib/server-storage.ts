@@ -23,6 +23,18 @@ const memoryDb: Database = {
 const DATA_DIR = path.join(process.cwd(), '.data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
+// Quotas and Guardrail Limits
+export const MAX_SHORTCUTS_PER_USER = 500;
+export const MAX_URL_LENGTH = 2048;
+export const MAX_NAME_LENGTH = 100;
+export const MAX_CATEGORY_LENGTH = 50;
+export const MAX_PASSWORD_LENGTH = 72; // PBKDF2 compute exhaustion defense
+
+// Pre-computed dummy hash to prevent timing attacks when user does not exist
+const DUMMY_SALT = '0123456789abcdef0123456789abcdef';
+const DUMMY_HASH = crypto.pbkdf2Sync('dummy_password_timing_defense', DUMMY_SALT, 1000, 64, 'sha256').toString('hex');
+const DUMMY_STORED_HASH = `${DUMMY_SALT}:${DUMMY_HASH}`;
+
 // Password hashing
 export function hashPassword(password: string, salt?: string): string {
   const finalSalt = salt || crypto.randomBytes(16).toString('hex');
@@ -34,7 +46,11 @@ export function verifyPassword(password: string, storedHash: string): boolean {
   const [salt, hash] = storedHash.split(':');
   if (!salt || !hash) return false;
   const verify = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha256').toString('hex');
-  return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verify, 'hex'));
+  try {
+    return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verify, 'hex'));
+  } catch {
+    return false;
+  }
 }
 
 export function generateUserId(): string {
@@ -81,7 +97,7 @@ function initDb(): Database {
               email: legacyEmail,
               passwordHash: val.passwordHash || hashPassword('password123'),
               apiKey: legacyApiKey,
-              shortcuts: Array.isArray(val.shortcuts) ? val.shortcuts : DEFAULT_SHORTCUTS,
+              shortcuts: Array.isArray(val.shortcuts) ? val.shortcuts.slice(0, MAX_SHORTCUTS_PER_USER) : DEFAULT_SHORTCUTS,
               createdAt: val.createdAt || Date.now(),
               updatedAt: Date.now(),
             };
@@ -126,7 +142,7 @@ export function toPublicUser(user: UserRecord): PublicUser {
   };
 }
 
-// User Registration
+// User Registration with Anti-Abuse Validation
 export function registerUser(data: {
   username: string;
   email: string;
@@ -138,17 +154,27 @@ export function registerUser(data: {
   const cleanEmail = data.email.trim().toLowerCase();
   const password = data.password;
 
-  if (!cleanUsername || cleanUsername.length < 3) {
-    return { success: false, error: 'Username must be at least 3 characters long' };
+  // Strict Username Validation (3 to 24 chars, alphanumeric + underscore only)
+  const usernameRegex = /^[a-zA-Z0-9_]{3,24}$/;
+  if (!usernameRegex.test(cleanUsername)) {
+    return {
+      success: false,
+      error: 'Username must be 3-24 characters long and contain only letters, numbers, and underscores',
+    };
   }
 
+  // RFC Email Validation (max 254 chars)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!cleanEmail || !emailRegex.test(cleanEmail)) {
-    return { success: false, error: 'Please provide a valid email address' };
+  if (!cleanEmail || cleanEmail.length > 254 || !emailRegex.test(cleanEmail)) {
+    return { success: false, error: 'Please provide a valid email address (max 254 characters)' };
   }
 
+  // Password Bounds (Min 6, Max 72 characters)
   if (!password || password.length < 6) {
     return { success: false, error: 'Password must be at least 6 characters long' };
+  }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return { success: false, error: `Password cannot exceed ${MAX_PASSWORD_LENGTH} characters` };
   }
 
   if (memoryDb.emailIndex[cleanEmail]) {
@@ -184,7 +210,7 @@ export function registerUser(data: {
   return { success: true, user: toPublicUser(newUser) };
 }
 
-// User Login
+// User Login with Timing Attack Defense
 export function loginUser(data: {
   identifier: string; // email or username or apiKey
   password?: string;
@@ -196,35 +222,43 @@ export function loginUser(data: {
     return { success: false, error: 'Please enter your email, username, or API Key' };
   }
 
+  if (data.password && data.password.length > MAX_PASSWORD_LENGTH) {
+    return { success: false, error: 'Password exceeds maximum length limit' };
+  }
+
   let user: UserRecord | undefined;
 
-  // Check if identifier is an API key
+  // 1. Check API Key
   if (id.startsWith('nt_key_')) {
     const userId = memoryDb.apiKeyIndex[id];
     if (userId) user = memoryDb.users[userId];
     if (user) return { success: true, user: toPublicUser(user) };
   }
 
-  // Check email
+  // 2. Check Email
   const userIdByEmail = memoryDb.emailIndex[id.toLowerCase()];
   if (userIdByEmail) {
     user = memoryDb.users[userIdByEmail];
   } else {
-    // Check username
+    // 3. Check Username
     const userIdByUsername = memoryDb.usernameIndex[id.toLowerCase()];
     if (userIdByUsername) {
       user = memoryDb.users[userIdByUsername];
     }
   }
 
+  // If user not found, perform dummy PBKDF2 hash to eliminate timing differences (prevents user enumeration)
   if (!user) {
-    return { success: false, error: 'No account found with this email or username' };
+    if (data.password) {
+      verifyPassword(data.password, DUMMY_STORED_HASH);
+    }
+    return { success: false, error: 'Invalid email, username, or password' };
   }
 
   if (data.password) {
     const isValid = verifyPassword(data.password, user.passwordHash);
     if (!isValid) {
-      return { success: false, error: 'Incorrect password. Please try again.' };
+      return { success: false, error: 'Invalid email, username, or password' };
     }
   }
 
@@ -260,7 +294,7 @@ export function findUser(query: {
   return null;
 }
 
-// Shortcut operations strictly for registered users
+// Shortcut operations strictly with quotas and bounds checking
 export function getUserShortcuts(userId: string): Shortcut[] {
   initDb();
   const user = memoryDb.users[userId];
@@ -277,16 +311,36 @@ export function addUserShortcut(
     return { success: false, error: 'User account not found. Please sign in.' };
   }
 
-  const cleanUrl = data.url.trim();
+  // Enforce account storage quota
+  if (user.shortcuts.length >= MAX_SHORTCUTS_PER_USER) {
+    return {
+      success: false,
+      error: `Account storage limit reached (Max ${MAX_SHORTCUTS_PER_USER} bookmarks). Please remove some shortcuts first.`,
+    };
+  }
+
+  const cleanUrl = (data.url || '').trim();
   if (!cleanUrl) {
     return { success: false, error: 'URL is required' };
   }
 
+  if (cleanUrl.length > MAX_URL_LENGTH) {
+    return { success: false, error: `URL cannot exceed ${MAX_URL_LENGTH} characters` };
+  }
+
+  // Validate protocol
+  if (!/^https?:\/\//i.test(cleanUrl)) {
+    return { success: false, error: 'URL must start with http:// or https://' };
+  }
+
+  const cleanName = (data.name || '').trim().slice(0, MAX_NAME_LENGTH) || hostname(cleanUrl);
+  const cleanCategory = (data.category || '').trim().slice(0, MAX_CATEGORY_LENGTH) || undefined;
+
   const newShortcut: Shortcut = {
     id: crypto.randomUUID(),
     url: cleanUrl,
-    name: data.name?.trim() || hostname(cleanUrl),
-    category: data.category?.trim() || undefined,
+    name: cleanName,
+    category: cleanCategory,
     pinned: !!data.pinned,
     clicks: 0,
     added: Date.now(),
@@ -319,7 +373,13 @@ export function setAllUserShortcuts(userId: string, shortcuts: Shortcut[]): bool
   const user = memoryDb.users[userId];
   if (!user) return false;
 
-  user.shortcuts = shortcuts;
+  // Bound array length and sanitize items
+  user.shortcuts = shortcuts.slice(0, MAX_SHORTCUTS_PER_USER).map((s) => ({
+    ...s,
+    url: (s.url || '').trim().slice(0, MAX_URL_LENGTH),
+    name: (s.name || '').trim().slice(0, MAX_NAME_LENGTH),
+    category: s.category ? s.category.trim().slice(0, MAX_CATEGORY_LENGTH) : undefined,
+  }));
   user.updatedAt = Date.now();
   persistDb();
   return true;
@@ -333,7 +393,7 @@ export function getUserCategories(userId: string): string[] {
   const set = new Set<string>();
   user.shortcuts.forEach((s) => {
     if (s.category && s.category.trim()) {
-      set.add(s.category.trim());
+      set.add(s.category.trim().slice(0, MAX_CATEGORY_LENGTH));
     }
   });
 

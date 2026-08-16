@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { TurnstileWidget } from '@/components/TurnstileWidget';
 
 export default function LoginPage() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
@@ -9,27 +10,27 @@ export default function LoginPage() {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ text: string; isError?: boolean } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusMessage(null);
-    setIsSubmitting(true);
 
     if (authMode === 'signin') {
       const identifier = emailOrUsername.trim();
       if (!identifier || !password) {
         setStatusMessage({ text: 'Please fill in all fields', isError: true });
-        setIsSubmitting(false);
         return;
       }
 
+      setIsSubmitting(true);
       try {
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, password }),
+          body: JSON.stringify({ identifier, password, turnstileToken }),
         });
         const data = await res.json();
         setIsSubmitting(false);
@@ -54,15 +55,15 @@ export default function LoginPage() {
       const cleanEmail = email.trim();
       if (!cleanUsername || !cleanEmail || !password) {
         setStatusMessage({ text: 'All fields are required', isError: true });
-        setIsSubmitting(false);
         return;
       }
 
+      setIsSubmitting(true);
       try {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: cleanUsername, email: cleanEmail, password }),
+          body: JSON.stringify({ username: cleanUsername, email: cleanEmail, password, turnstileToken }),
         });
         const data = await res.json();
         setIsSubmitting(false);
@@ -180,7 +181,7 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="auth-divider">
           <span className="auth-divider-line"></span>
-          <span className="auth-divider-text mono">or with email credentials</span>
+          <span className="auth-divider-text mono">or with credentials</span>
           <span className="auth-divider-line"></span>
         </div>
 
@@ -196,6 +197,8 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="mono"
+                pattern="^[a-zA-Z0-9_]{3,24}$"
+                title="3-24 characters, letters, numbers, and underscore only"
                 required
               />
             </div>
@@ -238,18 +241,25 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mono"
+              maxLength={72}
               required
             />
           </div>
 
+          {/* Cloudflare Turnstile Bot Protection Widget */}
+          <TurnstileWidget
+            onVerify={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken('')}
+          />
+
           <button
             type="submit"
             className="btn btn-primary mono"
-            style={{ height: '42px', marginTop: '10px' }}
+            style={{ height: '42px', marginTop: '6px' }}
             disabled={isSubmitting}
           >
             {isSubmitting
-              ? 'Processing...'
+              ? 'Verifying...'
               : authMode === 'signin'
               ? 'Sign In →'
               : 'Create Account →'}
@@ -257,7 +267,7 @@ export default function LoginPage() {
         </form>
 
         <div className="auth-footer mono">
-          Each account is allocated a distinct <code>userId</code> and secret <code>apiKey</code> for syncing.
+          Protected by Cloudflare Turnstile &bull; Isolated per <code>userId</code>
         </div>
       </div>
     </div>

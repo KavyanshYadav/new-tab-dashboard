@@ -2,12 +2,22 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { PublicUser } from '@/lib/types';
+import { TurnstileWidget } from './TurnstileWidget';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (identifier: string, password?: string) => Promise<{ success: boolean; user?: PublicUser; error?: string }>;
-  onRegister: (username: string, email: string, password: string) => Promise<{ success: boolean; user?: PublicUser; error?: string }>;
+  onLogin: (
+    identifier: string,
+    password?: string,
+    turnstileToken?: string
+  ) => Promise<{ success: boolean; user?: PublicUser; error?: string }>;
+  onRegister: (
+    username: string,
+    email: string,
+    password: string,
+    turnstileToken?: string
+  ) => Promise<{ success: boolean; user?: PublicUser; error?: string }>;
   onShowToast: (msg: string) => void;
 }
 
@@ -23,6 +33,7 @@ export function AuthModal({
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +43,7 @@ export function AuthModal({
       setErrorMessage(null);
       setIsSubmitting(false);
       setPassword('');
+      setTurnstileToken('');
       setTimeout(() => {
         inputRef.current?.focus();
       }, 50);
@@ -53,17 +65,16 @@ export function AuthModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
-    setIsSubmitting(true);
 
     if (authMode === 'signin') {
       const identifier = emailOrUsername.trim();
       if (!identifier) {
         setErrorMessage('Please enter your email or username');
-        setIsSubmitting(false);
         return;
       }
 
-      const res = await onLogin(identifier, password);
+      setIsSubmitting(true);
+      const res = await onLogin(identifier, password, turnstileToken);
       setIsSubmitting(false);
       if (res.success) {
         onClose();
@@ -76,11 +87,11 @@ export function AuthModal({
       const cleanEmail = email.trim();
       if (!cleanUsername || !cleanEmail || !password) {
         setErrorMessage('All fields are required');
-        setIsSubmitting(false);
         return;
       }
 
-      const res = await onRegister(cleanUsername, cleanEmail, password);
+      setIsSubmitting(true);
+      const res = await onRegister(cleanUsername, cleanEmail, password, turnstileToken);
       setIsSubmitting(false);
       if (res.success) {
         onClose();
@@ -140,8 +151,8 @@ export function AuthModal({
           </h2>
           <p className="auth-sub-title">
             {authMode === 'signin'
-              ? 'Sign in with your email/username and password to sync your dashboard.'
-              : 'Register to get a unique User ID and sync shortcuts across your Chrome extension.'}
+              ? 'Sign in to access your cloud-synced shortcuts.'
+              : 'Register to receive an isolated User ID and cloud sync.'}
           </p>
         </div>
 
@@ -213,6 +224,8 @@ export function AuthModal({
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="mono"
+                pattern="^[a-zA-Z0-9_]{3,24}$"
+                title="3-24 characters, letters, numbers, and underscore only"
                 required
               />
             </div>
@@ -262,18 +275,25 @@ export function AuthModal({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mono"
+              maxLength={72}
               required
             />
           </div>
 
+          {/* Cloudflare Turnstile Bot Protection Widget */}
+          <TurnstileWidget
+            onVerify={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken('')}
+          />
+
           <button
             type="submit"
             className="btn btn-primary mono"
-            style={{ height: '42px', marginTop: '10px' }}
+            style={{ height: '42px', marginTop: '6px' }}
             disabled={isSubmitting}
           >
             {isSubmitting
-              ? 'Processing...'
+              ? 'Verifying...'
               : authMode === 'signin'
               ? 'Sign In →'
               : 'Create Account →'}
@@ -281,7 +301,7 @@ export function AuthModal({
         </form>
 
         <div className="auth-footer mono">
-          Each account is allocated a distinct <code>userId</code> and secret <code>apiKey</code> for syncing.
+          Protected by Cloudflare Turnstile &bull; Isolated per <code>userId</code>
         </div>
       </div>
     </div>
