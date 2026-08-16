@@ -1,0 +1,233 @@
+/* Content Script Isolated Styles for New Tab Dashboard Extension */
+
+.__nt_hover_btn {
+  position: absolute;
+  z-index: 2147483640;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #131315 !important;
+  color: #ececee !important;
+  border: 1px solid #2e2e34 !important;
+  border-radius: 6px !important;
+  padding: 2px 7px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  text-decoration: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45) !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  opacity: 0;
+  transform: translateY(2px) scale(0.95);
+  transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s !important;
+  pointer-events: none;
+}
+
+.__nt_hover_btn.__nt_visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.__nt_hover_btn:hover {
+  background: #1e1e24 !important;
+  border-color: #4a4a55 !important;
+  color: #ffffff !important;
+}
+
+.__nt_hover_btn .__nt_icon {
+  color: #9ece6a !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+}
+
+/* Modal Overlay */
+.__nt_modal_overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(5, 5, 6, 0.75) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  z-index: 2147483645 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+  animation: __nt_fade 0.15s ease-out;
+}
+
+@keyframes __nt_fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.__nt_modal_box {
+  background: #131315 !important;
+  border: 1px solid #262629 !important;
+  border-radius: 14px !important;
+  width: 100% !important;
+  max-width: 360px !important;
+  padding: 20px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #ececee !important;
+  box-sizing: border-box !important;
+}
+
+.__nt_modal_box * {
+  box-sizing: border-box !important;
+}
+
+.__nt_modal_header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 14px !important;
+}
+
+.__nt_modal_title {
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: #ececee !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.__nt_modal_close {
+  background: none !important;
+  border: none !important;
+  color: #8b8b93 !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+}
+
+.__nt_modal_close:hover {
+  color: #ffffff !important;
+}
+
+.__nt_field {
+  margin-bottom: 11px !important;
+}
+
+.__nt_label {
+  display: block !important;
+  font-size: 10.5px !important;
+  color: #8b8b93 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 5px !important;
+  font-family: 'JetBrains Mono', monospace, sans-serif !important;
+}
+
+.__nt_input {
+  width: 100% !important;
+  height: 36px !important;
+  background: #18181b !important;
+  border: 1px solid #262629 !important;
+  border-radius: 8px !important;
+  color: #ececee !important;
+  padding: 0 10px !important;
+  font-size: 13px !important;
+  outline: none !important;
+  transition: border-color 0.15s !important;
+}
+
+.__nt_input:focus {
+  border-color: #45454a !important;
+}
+
+.__nt_checkbox_row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
+}
+
+.__nt_checkbox_row input {
+  accent-color: #e8e8ea !important;
+  cursor: pointer !important;
+  width: 15px !important;
+  height: 15px !important;
+}
+
+.__nt_checkbox_row label {
+  font-size: 12px !important;
+  color: #8b8b93 !important;
+  cursor: pointer !important;
+}
+
+.__nt_actions {
+  display: flex !important;
+  gap: 8px !important;
+}
+
+.__nt_btn {
+  flex: 1 !important;
+  height: 36px !important;
+  border-radius: 8px !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  border: 1px solid #262629 !important;
+  background: #18181b !important;
+  color: #8b8b93 !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.__nt_btn:hover {
+  color: #ececee !important;
+  border-color: #45454a !important;
+}
+
+.__nt_btn_primary {
+  background: #ececee !important;
+  color: #0a0a0b !important;
+  border-color: #ececee !important;
+}
+
+.__nt_btn_primary:hover {
+  opacity: 0.9 !important;
+  color: #0a0a0b !important;
+}
+
+/* In-Page Toast Notification */
+.__nt_toast {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  background: #18181b !important;
+  border: 1px solid #262629 !important;
+  border-radius: 10px !important;
+  color: #ececee !important;
+  font-size: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  padding: 9px 14px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  opacity: 0 !important;
+  transform: translateY(12px) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  pointer-events: none !important;
+}
+
+.__nt_toast.__nt_toast_show {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.__nt_toast.__nt_toast_error {
+  border-color: #5a2e2e !important;
+  color: #f5a3a3 !important;
+}

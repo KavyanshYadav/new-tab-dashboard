@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>New Tab Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo-row">
+        <span class="logo-icon">✦</span>
+        <span class="logo-text mono">New Tab Saver</span>
+      </div>
+      <div class="nav-tabs mono">
+        <button type="button" class="tab-btn active" data-tab="save">Save Tab</button>
+        <button type="button" class="tab-btn" data-tab="settings">Settings</button>
+      </div>
+    </header>
+
+    <!-- Tab 1: Save Active Tab -->
+    <div class="tab-content active" id="tab-save">
+      <form id="saveForm">
+        <div class="field">
+          <label class="mono">URL</label>
+          <input type="text" id="tabUrl" required placeholder="https://..." />
+        </div>
+
+        <div class="field">
+          <label class="mono">Title</label>
+          <input type="text" id="tabTitle" required placeholder="Page title" />
+        </div>
+
+        <div class="field">
+          <label class="mono">Category</label>
+          <input type="text" id="tabCategory" list="catList" placeholder="Dev, AI, Reading..." />
+          <datalist id="catList"></datalist>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="tabPinned" />
+          <label for="tabPinned">Pin to top</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary mono" id="saveTabBtn">
+          Save Tab to Dashboard
+        </button>
+      </form>
+
+      <div class="recent-section" id="recentSection" style="display:none;">
+        <div class="recent-title mono">Recently Saved</div>
+        <div class="recent-list" id="recentList"></div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Settings & Connection -->
+    <div class="tab-content" id="tab-settings">
+      <div class="field">
+        <label class="mono">Dashboard URL</label>
+        <input type="text" id="appUrl" placeholder="http://localhost:3001 or https://..." />
+        <span class="hint mono">URL where your Next.js dashboard is running</span>
+      </div>
+
+      <div class="field">
+        <label class="mono">User API Key</label>
+        <div class="key-wrapper">
+          <input type="password" id="apiKey" placeholder="nt_key_..." />
+          <button type="button" class="toggle-eye" id="toggleKey">👁</button>
+        </div>
+        <span class="hint mono">Found in your dashboard &rarr; &ldquo;extension &amp; api&rdquo;</span>
+      </div>
+
+      <div class="status-box mono" id="statusBox" style="display:none;"></div>
+
+      <div class="actions-row">
+        <button type="button" class="btn mono" id="testBtn">Test Connection</button>
+        <button type="button" class="btn btn-primary mono" id="saveSettingsBtn">Save Settings</button>
+      </div>
+
+      <div class="app-link-wrap">
+        <a href="#" id="openDashboardLink" class="mono open-link" target="_blank">
+          Open Dashboard ↗
+        </a>
+      </div>
+    </div>
+
+    <div class="toast mono" id="popupToast"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
