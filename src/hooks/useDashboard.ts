@@ -42,23 +42,22 @@ export function useDashboard() {
   }, []);
 
   // Sync with API in background without causing state loops
-  const syncToCloud = useCallback((currentSites: Shortcut[], keyToUse?: string, userIdToUse?: string) => {
+  const syncToCloud = useCallback((currentSites: Shortcut[], keyToUse?: string) => {
     const key = keyToUse || apiKeyRef.current;
-    const uid = userIdToUse || userRef.current?.userId;
-    if (!key && !uid) return;
+    if (!key) return;
 
     fetch('/api/shortcuts', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        ...(key ? { 'x-api-key': key } : {}),
-        ...(uid ? { 'x-user-id': uid } : {}),
+        'x-api-key': key,
       },
       body: JSON.stringify({ shortcuts: currentSites }),
     }).catch((err) => {
       console.warn('Cloud sync note:', err);
     });
   }, []);
+
 
   // Persist sites locally and to cloud
   const saveSites = useCallback((updated: Shortcut[], shouldSyncCloud = true) => {
@@ -148,15 +147,12 @@ export function useDashboard() {
     // Verify session once with backend
     const checkSession = async () => {
       const activeKey = urlKey || localUser?.apiKey || localKey;
-      const activeUid = localUser?.userId;
 
-      if (activeUid || activeKey) {
+      if (activeKey) {
         try {
-          const headers: Record<string, string> = {};
-          if (activeUid) headers['x-user-id'] = activeUid;
-          if (activeKey) headers['x-api-key'] = activeKey;
-
-          const res = await fetch('/api/auth/me', { headers });
+          const res = await fetch('/api/auth/me', {
+            headers: { 'x-api-key': activeKey },
+          });
           if (res.ok) {
             const data = await res.json();
             if (data.user) {
@@ -169,7 +165,7 @@ export function useDashboard() {
 
               // Fetch user shortcuts
               const scRes = await fetch('/api/shortcuts', {
-                headers: { 'x-user-id': data.user.userId, 'x-api-key': data.user.apiKey },
+                headers: { 'x-api-key': data.user.apiKey },
               });
               if (scRes.ok) {
                 const scData = await scRes.json();
@@ -188,6 +184,7 @@ export function useDashboard() {
       }
       setIsLoaded(true);
     };
+
 
     checkSession();
   }, []); // Runs strictly ONCE on mount!
@@ -215,7 +212,7 @@ export function useDashboard() {
 
         // Fetch user's shortcuts
         const scRes = await fetch('/api/shortcuts', {
-          headers: { 'x-user-id': data.user.userId, 'x-api-key': data.user.apiKey },
+          headers: { 'x-api-key': data.user.apiKey },
         });
         if (scRes.ok) {
           const scData = await scRes.json();
@@ -259,7 +256,7 @@ export function useDashboard() {
         } catch {}
 
         // Push initial bookmarks for this new user
-        syncToCloud(sites, data.user.apiKey, data.user.userId);
+        syncToCloud(sites, data.user.apiKey);
         showToast(`Account created! Welcome, @${data.user.username}`);
         return { success: true, user: data.user };
       }
@@ -283,14 +280,13 @@ export function useDashboard() {
 
   const regenerateApiKey = useCallback(async () => {
     try {
-      const headers: Record<string, string> = {};
-      if (user?.userId) headers['x-user-id'] = user.userId;
-      if (apiKey) headers['x-api-key'] = apiKey;
-
       const res = await fetch('/api/key', {
         method: 'POST',
-        headers,
-        body: JSON.stringify({ userId: user?.userId, apiKey }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+        },
+        body: JSON.stringify({ apiKey }),
       });
 
       if (res.ok) {
@@ -307,7 +303,7 @@ export function useDashboard() {
           try {
             localStorage.setItem(API_KEY_STORAGE, data.apiKey);
           } catch {}
-          syncToCloud(sites, data.apiKey, user?.userId);
+          syncToCloud(sites, data.apiKey);
           showToast('Generated new API Key');
           return data.apiKey;
         }
@@ -316,6 +312,7 @@ export function useDashboard() {
       showToast('Failed to regenerate key');
     }
   }, [user, apiKey, sites, syncToCloud, showToast]);
+
 
   const addShortcut = useCallback((siteData: { url: string; name?: string; category?: string; pinned?: boolean }) => {
     const cleanUrl = siteData.url.trim();

@@ -42,16 +42,27 @@ function performCleanup() {
 }
 
 export function getClientIp(req: NextRequest): string {
-  const forwarded = req.headers.get('x-forwarded-for');
-  if (forwarded) {
-    return forwarded.split(',')[0].trim();
+  // Cloudflare trusted client IP header
+  const cfConnectingIp = req.headers.get('cf-connecting-ip');
+  if (cfConnectingIp && cfConnectingIp.trim()) {
+    return cfConnectingIp.trim();
   }
+
+  // Standard reverse proxy headers
   const realIp = req.headers.get('x-real-ip');
-  if (realIp) {
+  if (realIp && realIp.trim()) {
     return realIp.trim();
   }
+
+  const forwarded = req.headers.get('x-forwarded-for');
+  if (forwarded && forwarded.trim()) {
+    const candidate = forwarded.split(',')[0].trim();
+    if (candidate) return candidate;
+  }
+
   return '127.0.0.1';
 }
+
 
 export function checkRateLimit(
   key: string,

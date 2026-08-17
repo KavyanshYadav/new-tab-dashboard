@@ -34,28 +34,48 @@ export const MAX_NAME_LENGTH = 100;
 export const MAX_CATEGORY_LENGTH = 50;
 export const MAX_PASSWORD_LENGTH = 72;
 
-// Pre-computed dummy hash for timing attack protection
+// Cryptographic Password Hashing (PBKDF2-HMAC-SHA256 with 100,000 iterations)
+const PBKDF2_ITERATIONS = 100000;
 const DUMMY_SALT = '0123456789abcdef0123456789abcdef';
-const DUMMY_HASH = crypto.pbkdf2Sync('dummy_password_timing_defense', DUMMY_SALT, 1000, 64, 'sha256').toString('hex');
-const DUMMY_STORED_HASH = `${DUMMY_SALT}:${DUMMY_HASH}`;
+const DUMMY_HASH = crypto.pbkdf2Sync('dummy_password_timing_defense', DUMMY_SALT, PBKDF2_ITERATIONS, 64, 'sha256').toString('hex');
+const DUMMY_STORED_HASH = `v2:${PBKDF2_ITERATIONS}:${DUMMY_SALT}:${DUMMY_HASH}`;
 
-// Password hashing
 export function hashPassword(password: string, salt?: string): string {
   const finalSalt = salt || crypto.randomBytes(16).toString('hex');
-  const hash = crypto.pbkdf2Sync(password, finalSalt, 1000, 64, 'sha256').toString('hex');
-  return `${finalSalt}:${hash}`;
+  const hash = crypto.pbkdf2Sync(password, finalSalt, PBKDF2_ITERATIONS, 64, 'sha256').toString('hex');
+  return `v2:${PBKDF2_ITERATIONS}:${finalSalt}:${hash}`;
 }
 
 export function verifyPassword(password: string, storedHash: string): boolean {
-  const [salt, hash] = storedHash.split(':');
+  if (!storedHash) return false;
+  const parts = storedHash.split(':');
+
+  let iterations = 1000;
+  let salt = '';
+  let hash = '';
+
+  if (parts.length === 4 && parts[0] === 'v2') {
+    iterations = parseInt(parts[1], 10) || PBKDF2_ITERATIONS;
+    salt = parts[2];
+    hash = parts[3];
+  } else if (parts.length === 2) {
+    // Legacy v1 format compatibility
+    salt = parts[0];
+    hash = parts[1];
+    iterations = 1000;
+  } else {
+    return false;
+  }
+
   if (!salt || !hash) return false;
-  const verify = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha256').toString('hex');
+  const verify = crypto.pbkdf2Sync(password, salt, iterations, 64, 'sha256').toString('hex');
   try {
     return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verify, 'hex'));
   } catch {
     return false;
   }
 }
+
 
 export function generateUserId(): string {
   return `usr_${crypto.randomBytes(8).toString('hex')}`;

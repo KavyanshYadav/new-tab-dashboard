@@ -7,20 +7,22 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
-  const userId = req.headers.get('x-user-id') || req.nextUrl.searchParams.get('userId');
-  const apiKey = req.headers.get('x-api-key') || req.nextUrl.searchParams.get('key');
-  const email = req.nextUrl.searchParams.get('email');
+  const apiKey =
+    req.headers.get('x-api-key') ||
+    req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
+    req.nextUrl.searchParams.get('key');
 
-  if (!userId && !apiKey && !email) {
-    return jsonResponse({ user: null });
+  if (!apiKey || !apiKey.trim()) {
+    return jsonResponse({ user: null, error: 'Unauthorized: API key required' }, 401);
   }
 
-  const user = await findUser({ userId, apiKey, email });
+  const user = await findUser({ apiKey: apiKey.trim() });
   if (!user) {
-    return jsonResponse({ user: null });
+    return jsonResponse({ user: null, error: 'Unauthorized: Invalid API key' }, 401);
   }
 
   return jsonResponse({
     user: toPublicUser(user),
   });
 }
+

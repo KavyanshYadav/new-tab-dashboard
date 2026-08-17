@@ -13,20 +13,19 @@ export async function OPTIONS() {
   return handleOptions();
 }
 
-function extractUserCredentials(req: NextRequest) {
-  const userId = req.headers.get('x-user-id') || req.nextUrl.searchParams.get('userId');
+function extractApiKey(req: NextRequest): string | null {
   const apiKey =
     req.headers.get('x-api-key') ||
     req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
     req.nextUrl.searchParams.get('key');
 
-  return { userId, apiKey };
+  return apiKey ? apiKey.trim() : null;
 }
 
 export async function GET(req: NextRequest) {
   const ip = getClientIp(req);
-  const { userId, apiKey } = extractUserCredentials(req);
-  const rateKey = apiKey || userId || ip;
+  const apiKey = extractApiKey(req);
+  const rateKey = apiKey || ip;
 
   const rateCheck = checkApiReadRateLimit(rateKey);
   if (!rateCheck.allowed) {
@@ -38,14 +37,15 @@ export async function GET(req: NextRequest) {
     return res;
   }
 
-  if (!userId && !apiKey) {
-    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
+  if (!apiKey) {
+    return jsonResponse({ error: 'Unauthorized: Valid API key is required (x-api-key header).' }, 401);
   }
 
-  const user = await findUser({ userId, apiKey });
+  const user = await findUser({ apiKey });
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: Invalid API key or account not found.' }, 401);
   }
+
 
   let shortcuts = (await getUserShortcuts(user.userId)) || [];
   const onlyPinned = req.nextUrl.searchParams.get('pinned') === 'true';
@@ -64,8 +64,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
-  const { userId, apiKey } = extractUserCredentials(req);
-  const rateKey = apiKey || userId || ip;
+  const apiKey = extractApiKey(req);
+  const rateKey = apiKey || ip;
 
   const rateCheck = checkApiWriteRateLimit(rateKey);
   if (!rateCheck.allowed) {
@@ -77,13 +77,13 @@ export async function POST(req: NextRequest) {
     return res;
   }
 
-  if (!userId && !apiKey) {
-    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
+  if (!apiKey) {
+    return jsonResponse({ error: 'Unauthorized: Valid API key is required (x-api-key header).' }, 401);
   }
 
-  const user = await findUser({ userId, apiKey });
+  const user = await findUser({ apiKey });
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: Invalid API key or account not found.' }, 401);
   }
 
   try {
@@ -119,8 +119,8 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const ip = getClientIp(req);
-  const { userId, apiKey } = extractUserCredentials(req);
-  const rateKey = apiKey || userId || ip;
+  const apiKey = extractApiKey(req);
+  const rateKey = apiKey || ip;
 
   const rateCheck = checkApiWriteRateLimit(rateKey);
   if (!rateCheck.allowed) {
@@ -132,13 +132,13 @@ export async function DELETE(req: NextRequest) {
     return res;
   }
 
-  if (!userId && !apiKey) {
-    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
+  if (!apiKey) {
+    return jsonResponse({ error: 'Unauthorized: Valid API key is required (x-api-key header).' }, 401);
   }
 
-  const user = await findUser({ userId, apiKey });
+  const user = await findUser({ apiKey });
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: Invalid API key or account not found.' }, 401);
   }
 
   try {
@@ -169,8 +169,8 @@ export async function DELETE(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   const ip = getClientIp(req);
-  const { userId, apiKey } = extractUserCredentials(req);
-  const rateKey = apiKey || userId || ip;
+  const apiKey = extractApiKey(req);
+  const rateKey = apiKey || ip;
 
   const rateCheck = checkApiWriteRateLimit(rateKey);
   if (!rateCheck.allowed) {
@@ -182,14 +182,15 @@ export async function PUT(req: NextRequest) {
     return res;
   }
 
-  if (!userId && !apiKey) {
-    return jsonResponse({ error: 'Unauthorized: Missing API key or User ID.' }, 401);
+  if (!apiKey) {
+    return jsonResponse({ error: 'Unauthorized: Valid API key is required (x-api-key header).' }, 401);
   }
 
-  const user = await findUser({ userId, apiKey });
+  const user = await findUser({ apiKey });
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized: User account not found.' }, 401);
+    return jsonResponse({ error: 'Unauthorized: Invalid API key or account not found.' }, 401);
   }
+
 
   try {
     const body = await req.json();

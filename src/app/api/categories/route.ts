@@ -9,24 +9,27 @@ export async function OPTIONS() {
 
 export async function GET(req: NextRequest) {
   const ip = getClientIp(req);
-  const userId = req.headers.get('x-user-id') || req.nextUrl.searchParams.get('userId');
-  const apiKey = req.headers.get('x-api-key') || req.nextUrl.searchParams.get('key');
+  const apiKey =
+    req.headers.get('x-api-key') ||
+    req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
+    req.nextUrl.searchParams.get('key');
 
-  const rateCheck = checkApiReadRateLimit(apiKey || userId || ip);
+  const rateCheck = checkApiReadRateLimit(apiKey || ip);
   if (!rateCheck.allowed) {
     const res = jsonResponse({ error: 'Rate limit exceeded.' }, 429);
     res.headers.set('Retry-After', String(rateCheck.resetSec));
     return res;
   }
 
-  if (!userId && !apiKey) {
-    return jsonResponse({ error: 'Unauthorized' }, 401);
+  if (!apiKey || !apiKey.trim()) {
+    return jsonResponse({ error: 'Unauthorized: API key is required' }, 401);
   }
 
-  const user = await findUser({ userId, apiKey });
+  const user = await findUser({ apiKey: apiKey.trim() });
   if (!user) {
-    return jsonResponse({ error: 'Unauthorized: User not found' }, 401);
+    return jsonResponse({ error: 'Unauthorized: Account not found' }, 401);
   }
+
 
   const categories = await getUserCategories(user.userId);
   return jsonResponse({
