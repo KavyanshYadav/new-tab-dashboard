@@ -88,6 +88,7 @@ export function CommunitySection({
                       width={20}
                       height={20}
                       loading="lazy"
+                      decoding="async"
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).style.display = 'none';
                         const fallback = e.currentTarget.nextElementSibling;

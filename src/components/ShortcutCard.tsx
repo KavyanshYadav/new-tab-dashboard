@@ -46,8 +46,10 @@ export function ShortcutCard({
               width={20}
               height={20}
               loading="lazy"
+              decoding="async"
               onError={() => setImageError(true)}
             />
+
           ) : (
             <span className="favicon-fallback mono">{fallbackLetter}</span>
           )}

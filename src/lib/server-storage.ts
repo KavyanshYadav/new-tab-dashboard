@@ -187,11 +187,14 @@ export function toPublicUser(user: UserRecord): PublicUser {
 // User Queries & Authentication (Turso + Local Fallback)
 // ----------------------------------------------------
 
-export async function findUser(query: {
-  userId?: string | null;
-  apiKey?: string | null;
-  email?: string | null;
-}): Promise<UserRecord | null> {
+export async function findUser(
+  query: {
+    userId?: string | null;
+    apiKey?: string | null;
+    email?: string | null;
+  },
+  includeShortcuts = false
+): Promise<UserRecord | null> {
   await ensureTursoReady();
   const turso = getTursoClient();
 
@@ -219,21 +222,23 @@ export async function findUser(query: {
       const row = userRes.rows[0];
       const userId = String(row.user_id);
 
-      // Fetch shortcuts for this user
-      const scRes = await turso.execute({
-        sql: 'SELECT * FROM shortcuts WHERE user_id = ? ORDER BY pinned DESC, added DESC',
-        args: [userId],
-      });
+      let shortcuts: Shortcut[] = [];
+      if (includeShortcuts) {
+        const scRes = await turso.execute({
+          sql: 'SELECT * FROM shortcuts WHERE user_id = ? ORDER BY pinned DESC, added DESC',
+          args: [userId],
+        });
 
-      const shortcuts: Shortcut[] = scRes.rows.map((r) => ({
-        id: String(r.id),
-        name: String(r.name),
-        url: String(r.url),
-        category: r.category ? String(r.category) : undefined,
-        pinned: Boolean(r.pinned),
-        clicks: Number(r.clicks || 0),
-        added: Number(r.added || Date.now()),
-      }));
+        shortcuts = scRes.rows.map((r) => ({
+          id: String(r.id),
+          name: String(r.name),
+          url: String(r.url),
+          category: r.category ? String(r.category) : undefined,
+          pinned: Boolean(r.pinned),
+          clicks: Number(r.clicks || 0),
+          added: Number(r.added || Date.now()),
+        }));
+      }
 
       return {
         userId,
@@ -249,6 +254,7 @@ export async function findUser(query: {
       console.error('Turso findUser error, falling back to local:', err);
     }
   }
+
 
   // Local fallback
   initLocalDb();

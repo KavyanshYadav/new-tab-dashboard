@@ -464,6 +464,13 @@
       }
     });
 
+    function prepareIndex(items) {
+      return items.map((item) => ({
+        item,
+        _searchStr: `${item.name || ''} ${item.url || ''} ${item.category || ''}`.toLowerCase(),
+      }));
+    }
+
     function renderResults(query) {
       const q = (query || '').toLowerCase().trim();
       selectedIndex = 0;
@@ -475,16 +482,12 @@
           matches = allShortcutsCache;
         }
       } else {
-        matches = allShortcutsCache.filter((s) => {
-          return (
-            (s.name && s.name.toLowerCase().includes(q)) ||
-            (s.url && s.url.toLowerCase().includes(q)) ||
-            (s.category && s.category.toLowerCase().includes(q))
-          );
-        });
+        const indexed = prepareIndex(allShortcutsCache);
+        matches = indexed.filter((entry) => entry._searchStr.includes(q)).map((entry) => entry.item);
       }
 
       filteredResults = matches;
+
 
       if (filteredResults.length === 0) {
         resultsContainer.innerHTML = `

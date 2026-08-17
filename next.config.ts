@@ -24,8 +24,18 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: "/(icon|icon-.*|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|webp|ico|woff2))",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
     ];
   },
 };
+
 
 export default nextConfig;

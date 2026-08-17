@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
+
 import { useDashboard } from '@/hooks/useDashboard';
 import { Shortcut, PopularSite } from '@/lib/types';
 import { ClockHero } from '@/components/ClockHero';
@@ -8,13 +10,16 @@ import { PinnedSection } from '@/components/PinnedSection';
 import { CommunitySection } from '@/components/CommunitySection';
 import { ShortcutsSection } from '@/components/ShortcutsSection';
 import { UtilityBar } from '@/components/UtilityBar';
-import { AddEditModal } from '@/components/AddEditModal';
-import { PopularSitesModal } from '@/components/PopularSitesModal';
-import { CommunityListsModal } from '@/components/CommunityListsModal';
-import { ApiSettingsModal } from '@/components/ApiSettingsModal';
-import { AuthModal } from '@/components/AuthModal';
 import { UserAvatarMenu } from '@/components/UserAvatarMenu';
 import { Toast } from '@/components/Toast';
+
+// Lazy-load modal dialogs on demand to cut initial bundle size & defer Turnstile script
+const AddEditModal = dynamic(() => import('@/components/AddEditModal').then((m) => m.AddEditModal), { ssr: false });
+const PopularSitesModal = dynamic(() => import('@/components/PopularSitesModal').then((m) => m.PopularSitesModal), { ssr: false });
+const CommunityListsModal = dynamic(() => import('@/components/CommunityListsModal').then((m) => m.CommunityListsModal), { ssr: false });
+const ApiSettingsModal = dynamic(() => import('@/components/ApiSettingsModal').then((m) => m.ApiSettingsModal), { ssr: false });
+const AuthModal = dynamic(() => import('@/components/AuthModal').then((m) => m.AuthModal), { ssr: false });
+
 
 export default function DashboardPage() {
   const {
