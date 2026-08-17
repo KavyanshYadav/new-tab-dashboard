@@ -42,3 +42,5 @@ next-env.d.ts
 
 # local data storage (tracked for seed database in serverless)
 
+# dev report artifacts
+/public/_dev_report.html

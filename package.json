@@ -6,8 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:report": "node scripts/generate-dev-report.mjs"
   },
+
   "dependencies": {
     "@libsql/client": "^0.17.4",
     "next": "16.3.1",
