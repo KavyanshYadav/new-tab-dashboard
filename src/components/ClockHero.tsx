@@ -8,9 +8,10 @@ import { fullUrl, isUrlLike } from '@/lib/utils';
 interface ClockHeroProps {
   engineIndex: number;
   onEngineChange: (index: number) => void;
+  weatherSlot?: React.ReactNode;
 }
 
-export function ClockHero({ engineIndex, onEngineChange }: ClockHeroProps) {
+export function ClockHero({ engineIndex, onEngineChange, weatherSlot }: ClockHeroProps) {
   const { hours, minutes, seconds, dateRow, greeting, isMounted } = useClock();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -49,6 +50,8 @@ export function ClockHero({ engineIndex, onEngineChange }: ClockHeroProps) {
       <div className="date-row" id="dateRow">
         {isMounted ? dateRow : '—'}
       </div>
+
+      {weatherSlot}
 
       <div className="search-wrap">
         <select

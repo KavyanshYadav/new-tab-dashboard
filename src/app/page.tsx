@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useDashboard } from '@/hooks/useDashboard';
 import { Shortcut, PopularSite } from '@/lib/types';
 import { ClockHero } from '@/components/ClockHero';
+import { ClockWeather } from '@/components/ClockWeather';
 import { PinnedSection } from '@/components/PinnedSection';
 import { CommunitySection } from '@/components/CommunitySection';
 import { ShortcutsSection } from '@/components/ShortcutsSection';
@@ -107,10 +108,11 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Clock, Date, Greeting, and Multi-Engine Search */}
+      {/* Clock, Date, Greeting, Weather, and Multi-Engine Search */}
       <ClockHero
         engineIndex={prefs.engine}
         onEngineChange={setEngine}
+        weatherSlot={<ClockWeather />}
       />
 
       {/* Starred / Pinned shortcuts section */}
